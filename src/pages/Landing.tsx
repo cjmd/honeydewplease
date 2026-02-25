@@ -1,5 +1,7 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
+import { AuthDialog } from "@/components/AuthDialog";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Heart, ShoppingCart, Users, CheckCircle2, ArrowRight } from "lucide-react";
 import logo from "@/assets/logo.svg";
@@ -29,6 +31,8 @@ const carouselSlides = [{
   description: <>Invite your partner, family, or roommates. <span className="text-primary font-medium">Everyone</span> stays on the same page.</>
 }];
 const Landing = () => {
+  const [authOpen, setAuthOpen] = useState(false);
+  const navigate = useNavigate();
   const [activeSlide, setActiveSlide] = useState(0);
 
   // Auto-advance carousel every 3 seconds
@@ -38,7 +42,24 @@ const Landing = () => {
     }, 3000);
     return () => clearInterval(interval);
   }, []);
+
+  const handleSignUp = async (email: string, password: string, name: string) => {
+    const { error } = await supabase.auth.signUp({
+      email, password,
+      options: { data: { name }, emailRedirectTo: window.location.origin },
+    });
+    if (error) throw error;
+    navigate("/app");
+  };
+
+  const handleSignIn = async (email: string, password: string) => {
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) throw error;
+    navigate("/app");
+  };
+
   return <div className="min-h-screen bg-background">
+      <AuthDialog open={authOpen} onOpenChange={setAuthOpen} onSignUp={handleSignUp} onSignIn={handleSignIn} />
       {/* Hero Section with curved green background */}
       <div className="relative">
         {/* Curved green background shape */}
@@ -55,11 +76,9 @@ const Landing = () => {
                 <img src={logo} alt="honeydew, please." className="w-10 h-auto" />
                 <span className="text-xl font-bold text-foreground">honeydew, please.</span>
               </div>
-              <Link to="/app">
-                <Button variant="outline" className="rounded-full border-foreground/20 hover:bg-background/50">
+              <Button variant="outline" className="rounded-full border-foreground/20 hover:bg-background/50" onClick={() => setAuthOpen(true)}>
                   Sign In
                 </Button>
-              </Link>
             </nav>
 
             {/* Hero Content */}
