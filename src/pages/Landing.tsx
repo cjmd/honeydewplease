@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Heart, ShoppingCart, Users, CheckCircle2, ArrowRight } from "lucide-react";
+import logo from "@/assets/logo.svg";
 import heroLight from "@/assets/hero-light.png";
 import heroDark from "@/assets/hero-dark.png";
 import carouselTodos from "@/assets/carousel-todos.png";
@@ -51,7 +52,7 @@ const Landing = () => {
             {/* Navigation */}
             <nav className="flex items-center justify-between mb-16">
               <div className="flex items-center gap-2">
-                <img src="/pwa-icon.png" alt="honeydew, please." className="w-10 h-10 rounded-full" />
+                <img src={logo} alt="honeydew, please." className="w-10 h-auto" />
                 <span className="text-xl font-bold text-foreground">honeydew, please.</span>
               </div>
               <Link to="/app">
