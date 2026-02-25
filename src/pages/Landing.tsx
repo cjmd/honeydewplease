@@ -7,10 +7,10 @@ import heroDark from "@/assets/hero-dark.png";
 import carouselTodos from "@/assets/carousel-todos.png";
 import carouselShopping from "@/assets/carousel-shopping.png";
 import carouselWorkspaces from "@/assets/carousel-workspaces.png";
-import stickerHi from "@/assets/sticker-hi.png";
-import stickerLove from "@/assets/sticker-love.png";
-import stickerThumbsup from "@/assets/sticker-thumbsup.png";
-import stickerChecklist from "@/assets/sticker-checklist.png";
+import stickerHi from "@/assets/sticker-hi.svg";
+import stickerLove from "@/assets/sticker-love.svg";
+import stickerThumbsup from "@/assets/sticker-thumbsup.svg";
+import stickerChecklist from "@/assets/sticker-checklist.svg";
 const carouselSlides = [{
   image: carouselTodos,
   icon: CheckCircle2,
