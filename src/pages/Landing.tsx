@@ -2,16 +2,15 @@ import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Heart, ShoppingCart, Users, CheckCircle2, ArrowRight } from "lucide-react";
-import logo from "@/assets/logo.svg";
 import heroLight from "@/assets/hero-light.png";
 import heroDark from "@/assets/hero-dark.png";
 import carouselTodos from "@/assets/carousel-todos.png";
 import carouselShopping from "@/assets/carousel-shopping.png";
 import carouselWorkspaces from "@/assets/carousel-workspaces.png";
-import stickerHi from "@/assets/sticker-hi.svg";
-import stickerLove from "@/assets/sticker-love.svg";
-import stickerThumbsup from "@/assets/sticker-thumbsup.svg";
-import stickerChecklist from "@/assets/sticker-checklist.svg";
+import stickerHi from "@/assets/sticker-hi.png";
+import stickerLove from "@/assets/sticker-love.png";
+import stickerThumbsup from "@/assets/sticker-thumbsup.png";
+import stickerChecklist from "@/assets/sticker-checklist.png";
 const carouselSlides = [{
   image: carouselTodos,
   icon: CheckCircle2,
@@ -34,7 +33,7 @@ const Landing = () => {
   // Auto-advance carousel every 3 seconds
   useEffect(() => {
     const interval = setInterval(() => {
-      setActiveSlide(prev => (prev + 1) % carouselSlides.length);
+      setActiveSlide((prev) => (prev + 1) % carouselSlides.length);
     }, 3000);
     return () => clearInterval(interval);
   }, []);
@@ -52,7 +51,7 @@ const Landing = () => {
             {/* Navigation */}
             <nav className="flex items-center justify-between mb-16">
               <div className="flex items-center gap-2">
-                <img src={logo} alt="honeydew, please." className="w-10 h-auto" />
+                <img src="/pwa-icon.png" alt="honeydew, please." className="w-10 h-10 rounded-full" />
                 <span className="text-xl font-bold text-foreground">honeydew, please.</span>
               </div>
               <Link to="/app">
@@ -79,7 +78,7 @@ const Landing = () => {
               <div className="text-center md:text-left order-1 md:order-2 max-w-md mx-auto md:mx-0">
                 <div className="inline-flex items-center gap-2 bg-white text-foreground px-4 py-2 rounded-full text-sm font-medium mb-6 shadow-sm">
                   <span>🍋</span>
-                  <span>Simple. Shared. Sorted.</span>
+                  <span>​🍈</span>
                 </div>
                 
                 <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4 leading-tight">
