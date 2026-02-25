@@ -7,6 +7,10 @@ import heroDark from "@/assets/hero-dark.png";
 import carouselTodos from "@/assets/carousel-todos.png";
 import carouselShopping from "@/assets/carousel-shopping.png";
 import carouselWorkspaces from "@/assets/carousel-workspaces.png";
+import stickerHi from "@/assets/sticker-hi.png";
+import stickerLove from "@/assets/sticker-love.png";
+import stickerThumbsup from "@/assets/sticker-thumbsup.png";
+import stickerChecklist from "@/assets/sticker-checklist.png";
 const carouselSlides = [{
   image: carouselTodos,
   icon: CheckCircle2,
@@ -58,7 +62,10 @@ const Landing = () => {
             </nav>
 
             {/* Hero Content */}
-            <div className="grid md:grid-cols-2 gap-8 items-center max-w-5xl mx-auto pb-24">
+            <div className="grid md:grid-cols-2 gap-4 items-center max-w-4xl mx-auto pb-24 relative">
+              {/* Sticker - Hi */}
+              <img src={stickerHi} alt="" className="absolute -top-8 right-0 md:right-12 w-20 h-20 rotate-12 pointer-events-none select-none hidden md:block" />
+
               {/* Left - Phone Image */}
               <div className="flex justify-center md:justify-end order-2 md:order-1">
                 <div className="relative">
@@ -102,7 +109,9 @@ const Landing = () => {
       </div>
 
       {/* Features Section */}
-      <section className="py-16 md:py-24 bg-background">
+      <section className="py-16 md:py-24 bg-background relative">
+        <img src={stickerChecklist} alt="" className="absolute top-8 left-4 md:left-16 w-16 h-16 -rotate-12 pointer-events-none select-none opacity-80" />
+        <img src={stickerThumbsup} alt="" className="absolute bottom-8 right-4 md:right-16 w-14 h-14 rotate-6 pointer-events-none select-none opacity-80" />
         <div className="container mx-auto px-6">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
@@ -153,7 +162,9 @@ const Landing = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-16 md:py-20 bg-primary">
+      <section className="py-16 md:py-20 bg-primary relative overflow-hidden">
+        <img src={stickerLove} alt="" className="absolute -bottom-4 left-4 md:left-20 w-20 h-20 -rotate-6 pointer-events-none select-none opacity-60" />
+        <img src={stickerHi} alt="" className="absolute top-4 right-4 md:right-20 w-16 h-16 rotate-12 pointer-events-none select-none opacity-60" />
         <div className="container mx-auto px-6">
           <div className="max-w-2xl mx-auto text-center">
             <h2 className="text-3xl md:text-4xl font-bold text-primary-foreground mb-4">
