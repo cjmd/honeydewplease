@@ -96,7 +96,7 @@ const Landing = () => {
 
               {/* Right - Text and Button */}
               <div className="text-center md:text-left order-1 md:order-2 max-w-md mx-auto md:mx-0">
-                <div className="inline-flex items-center gap-2 bg-white text-foreground px-4 py-2 rounded-full text-sm font-medium mb-6 shadow-sm">
+                <div className="inline-flex items-center gap-2 bg-white text-[hsl(210,20%,18%)] px-4 py-2 rounded-full text-sm font-medium mb-6 shadow-sm">
                   <span>🍈
                 </span>
                   <span>Simple. Shared. Sorted.</span>
