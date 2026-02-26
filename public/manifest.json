@@ -3,7 +3,7 @@
   "name": "honeydew, please.",
   "short_name": "honeydew, please.",
   "description": "collaborative to-do & shopping list",
-  "start_url": "/",
+  "start_url": "/app",
   "scope": "/",
   "display": "standalone",
   "background_color": "#c6f0c6",
