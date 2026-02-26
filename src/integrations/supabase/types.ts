@@ -55,6 +55,7 @@ export type Database = {
       profiles: {
         Row: {
           created_at: string
+          default_workspace_id: string | null
           email: string
           id: string
           name: string
@@ -62,6 +63,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          default_workspace_id?: string | null
           email: string
           id: string
           name: string
@@ -69,6 +71,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          default_workspace_id?: string | null
           email?: string
           id?: string
           name?: string

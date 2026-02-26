@@ -222,8 +222,19 @@ const Index = () => {
         }
       }
 
-      // 2) Check for a default workspace preference
-      const defaultWs = localStorage.getItem("defaultWorkspaceId");
+      // 2) Check for a default workspace preference (DB first, then localStorage cache)
+      let defaultWs = localStorage.getItem("defaultWorkspaceId");
+      if (!defaultWs) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("default_workspace_id")
+          .eq("id", currentUserId)
+          .maybeSingle();
+        if (profile?.default_workspace_id) {
+          defaultWs = profile.default_workspace_id;
+          localStorage.setItem("defaultWorkspaceId", defaultWs);
+        }
+      }
       if (defaultWs) {
         const { data: membership } = await supabase
           .from("workspace_members")

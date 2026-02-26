@@ -148,7 +148,20 @@ export function SettingsMenu({
       if (workspacesError) throw workspacesError;
 
       const activeWorkspaceId = workspaceId || localStorage.getItem("activeWorkspaceId");
-      const defaultWorkspaceId = localStorage.getItem("defaultWorkspaceId");
+
+      // Fetch default workspace from profile (DB is source of truth)
+      let defaultWorkspaceId: string | null = null;
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("default_workspace_id")
+        .eq("id", user.id)
+        .maybeSingle();
+      if (profile?.default_workspace_id) {
+        defaultWorkspaceId = profile.default_workspace_id;
+        localStorage.setItem("defaultWorkspaceId", defaultWorkspaceId);
+      } else {
+        localStorage.removeItem("defaultWorkspaceId");
+      }
 
       const formattedWorkspaces: UserWorkspace[] = (workspaces || []).map((ws: any) => {
         const membership = memberships.find((m: any) => m.workspace_id === ws.id);
@@ -222,15 +235,28 @@ export function SettingsMenu({
     loadWorkspaceData();
   };
 
-  const handleSetDefaultWorkspace = (wsId: string) => {
+  const handleSetDefaultWorkspace = async (wsId: string) => {
+    if (!user) return;
     const currentDefault = localStorage.getItem("defaultWorkspaceId");
-    if (currentDefault === wsId) {
-      // Clear default if clicking the same one
-      localStorage.removeItem("defaultWorkspaceId");
-      toast.success("Default workspace cleared");
-    } else {
-      localStorage.setItem("defaultWorkspaceId", wsId);
-      toast.success("Default workspace set");
+    const newDefault = currentDefault === wsId ? null : wsId;
+
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update({ default_workspace_id: newDefault } as any)
+        .eq("id", user.id);
+      if (error) throw error;
+
+      if (newDefault) {
+        localStorage.setItem("defaultWorkspaceId", newDefault);
+        toast.success("Default workspace set");
+      } else {
+        localStorage.removeItem("defaultWorkspaceId");
+        toast.success("Default workspace cleared");
+      }
+    } catch (error) {
+      console.error("Error saving default workspace:", error);
+      toast.error("Failed to save default workspace");
     }
     loadUserWorkspaces();
   };
