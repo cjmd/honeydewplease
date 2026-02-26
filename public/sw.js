@@ -1,4 +1,4 @@
-const CACHE_NAME = 'honeydew-please-v1';
+const CACHE_NAME = 'honeydew-please-v2';
 const STATIC_CACHE = [
   '/pwa-icon.png',
   '/icon-192.png',
