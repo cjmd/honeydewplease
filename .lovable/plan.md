@@ -1,30 +1,25 @@
 
 
-## Fix: Persist Default Workspace Preference in the Database
+## Update PWA Details
 
-### Problem
-The "default workspace" preference is currently stored only in `localStorage`. This means:
-- It's lost when the user clears browser data or uses a different browser/device
-- It doesn't sync across sessions on different devices
-- After logging out and back in, the preference may be gone
+### Changes
 
-### Solution
-Store the default workspace preference in the `profiles` table by adding a `default_workspace_id` column, and update the app to read/write from the database instead of (or in addition to) localStorage.
+**1. Copy the uploaded honeydew icon to the project**
+- Copy `user-uploads://image-52.png` to `public/pwa-icon.png` (replaces existing apple-touch-icon)
+- Copy to `public/icon-192.png` and `public/icon-512.png` (replaces existing PWA icons)
 
-### Technical Details
+**2. Update theme color to match brand green**
+- Change theme color from `#333333` to the brand's mint green background `#c6f0c6` (derived from the honeydew character's background) in both:
+  - `public/manifest.json` (`theme_color` and `background_color`)
+  - `index.html` (`theme-color` meta tag)
 
-**1. Database Migration**
-- Add a `default_workspace_id` column (nullable UUID) to the `profiles` table
+**3. Fix remaining "love or squirrel" reference**
+- In `index.html` line 15, update `apple-mobile-web-app-title` from `"love or squirrel"` to `"honeydew, please"`
 
-**2. Update `SettingsMenu.tsx` - `handleSetDefaultWorkspace`**
-- After toggling the default, save/clear the `default_workspace_id` in the `profiles` table via Supabase
-- Keep localStorage as a fast cache, but treat the database as the source of truth
-
-**3. Update `SettingsMenu.tsx` - `loadUserWorkspaces`**
-- Read the default workspace from the `profiles` table instead of only localStorage
-- Cache it to localStorage for quick access
-
-**4. Update `Index.tsx` - `loadWorkspaceId`**
-- In step 2 (checking default workspace), also fetch from the `profiles` table if localStorage has no value
-- This ensures the preference works on new devices/browsers
+### Files Modified
+- `public/pwa-icon.png` -- replaced with uploaded image
+- `public/icon-192.png` -- replaced with uploaded image
+- `public/icon-512.png` -- replaced with uploaded image
+- `public/manifest.json` -- update theme/background colors
+- `index.html` -- update theme-color meta tag and fix app title
 
