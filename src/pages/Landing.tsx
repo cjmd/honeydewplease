@@ -34,6 +34,18 @@ const Landing = () => {
   const [authOpen, setAuthOpen] = useState(false);
   const navigate = useNavigate();
   const [activeSlide, setActiveSlide] = useState(0);
+  const [checkingAuth, setCheckingAuth] = useState(true);
+
+  // Redirect authenticated users straight to /app
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        navigate("/app", { replace: true });
+      } else {
+        setCheckingAuth(false);
+      }
+    });
+  }, [navigate]);
 
   // Auto-advance carousel every 3 seconds
   useEffect(() => {
@@ -57,6 +69,10 @@ const Landing = () => {
     if (error) throw error;
     navigate("/app");
   };
+
+  if (checkingAuth) {
+    return <div className="min-h-screen bg-background" />;
+  }
 
   return <div className="min-h-screen bg-background">
       <AuthDialog open={authOpen} onOpenChange={setAuthOpen} onSignUp={handleSignUp} onSignIn={handleSignIn} />
