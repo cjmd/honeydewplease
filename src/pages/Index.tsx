@@ -876,7 +876,7 @@ const Index = () => {
 
       <div className="size-full bg-background relative">
         {/* Main content */}
-        {currentView === "home" && <HomeView tasks={tasks} onTaskClick={setSelectedTask} onTaskToggle={handleToggleTask} onViewChange={setCurrentView} onOpenSettingsMenu={() => setIsSettingsMenuOpen(true)} workspaceMembers={workspaceMembers} />}
+        {currentView === "home" && <HomeView tasks={tasks} onTaskClick={setSelectedTask} onTaskToggle={handleToggleTask} onReorder={handleReorderTasks} onViewChange={setCurrentView} onOpenSettingsMenu={() => setIsSettingsMenuOpen(true)} workspaceMembers={workspaceMembers} />}
 
         {currentView === "todos" && <TodosView tasks={todoTasks} onTaskClick={setSelectedTask} onTaskToggle={handleToggleTask} onReorder={handleReorderTasks} onViewChange={setCurrentView} onOpenSettingsMenu={() => setIsSettingsMenuOpen(true)} workspaceMembers={workspaceMembers} />}
 
