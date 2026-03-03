@@ -722,38 +722,12 @@ const Index = () => {
     }
 
     try {
-      let hadConflict = false;
-      const TOLERANCE_MS = 5000; // Same tolerance as handleUpdateTask
-      
-      for (const { id, order } of taskOrders) {
-        const localTask = tasks.find(t => t.id === id);
-        const { data: current, error: fetchError } = await supabase
-          .from("tasks")
-          .select("updated_at")
-          .eq("id", id)
-          .single();
-        if (fetchError) throw fetchError;
-
-        const serverUpdatedAt = current ? new Date((current as any).updated_at).getTime() : 0;
-        const localUpdatedAt = localTask?.updatedAt ?? 0;
-        const timeDifference = serverUpdatedAt - localUpdatedAt;
-        
-        if (timeDifference > TOLERANCE_MS) {
-          console.log("Reorder conflict detected:", { id, timeDifference });
-          hadConflict = true;
-          continue; // Skip updating this task's order; we'll refresh below
-        }
-
-        await supabase
-          .from("tasks")
-          .update({ order })
-          .eq("id", id);
-      }
-
-      if (hadConflict) {
-        toast.error("Some items changed on another device. Refreshed latest.");
-        await loadTasks(user.id);
-      }
+      // Batch update all task orders without conflict detection
+      // Reordering only changes display order, so conflicts are not meaningful here
+      const updates = taskOrders.map(({ id, order }) =>
+        supabase.from("tasks").update({ order }).eq("id", id)
+      );
+      await Promise.all(updates);
     } catch (error) {
       console.error("Error reordering tasks:", error);
     }
