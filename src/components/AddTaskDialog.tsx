@@ -49,6 +49,15 @@ export function AddTaskDialog({
   const [members, setMembers] = useState<WorkspaceMember[]>([]);
   const [showMemberSelect, setShowMemberSelect] = useState(false);
   const [isOptionsOpen, setIsOptionsOpen] = useState(false);
+  const optionsContentRef = useRef<HTMLDivElement>(null);
+  const titleInputRef = useRef<HTMLInputElement>(null);
+
+  // Scroll input into view when virtual keyboard appears on mobile
+  const handleTitleFocus = useCallback(() => {
+    setTimeout(() => {
+      titleInputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 300);
+  }, []);
 
   // Load workspace members
   useEffect(() => {
