@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { Task } from "../App";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription, DrawerFooter } from "./ui/drawer";
 import { Input } from "./ui/input";
@@ -49,6 +49,15 @@ export function AddTaskDialog({
   const [members, setMembers] = useState<WorkspaceMember[]>([]);
   const [showMemberSelect, setShowMemberSelect] = useState(false);
   const [isOptionsOpen, setIsOptionsOpen] = useState(false);
+  const optionsContentRef = useRef<HTMLDivElement>(null);
+  const titleInputRef = useRef<HTMLInputElement>(null);
+
+  // Scroll input into view when virtual keyboard appears on mobile
+  const handleTitleFocus = useCallback(() => {
+    setTimeout(() => {
+      titleInputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 300);
+  }, []);
 
   // Load workspace members
   useEffect(() => {
@@ -162,7 +171,7 @@ export function AddTaskDialog({
         <div className="px-4 pb-2 overflow-y-auto flex-1 min-h-0">
           <div className="grid gap-4">
             <div className="grid gap-2">
-              <Input value={title} onChange={e => setTitle(e.target.value)} placeholder="New reminder" onKeyDown={e => {
+              <Input ref={titleInputRef} value={title} onChange={e => setTitle(e.target.value)} placeholder="New reminder" onFocus={handleTitleFocus} onKeyDown={e => {
               if (e.key === "Enter") {
                 e.preventDefault();
               }
@@ -188,6 +197,12 @@ export function AddTaskDialog({
                   document.activeElement.blur();
                 }
                 setIsOptionsOpen(open);
+                // Scroll expanded content into view on mobile
+                if (open) {
+                  setTimeout(() => {
+                    optionsContentRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                  }, 150);
+                }
               }}
             >
               <CollapsibleTrigger asChild>
@@ -200,7 +215,7 @@ export function AddTaskDialog({
                 </Button>
               </CollapsibleTrigger>
               
-              <CollapsibleContent className="space-y-4 mt-4">
+              <CollapsibleContent ref={optionsContentRef} className="space-y-4 mt-4">
                 <div className="grid gap-2">
                   <Label className="text-foreground font-medium">Details</Label>
                   <Textarea 
