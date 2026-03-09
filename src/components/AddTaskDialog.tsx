@@ -215,7 +215,7 @@ export function AddTaskDialog({
                 </Button>
               </CollapsibleTrigger>
               
-              <CollapsibleContent ref={optionsContentRef} className="space-y-4 mt-4">
+              <CollapsibleContent ref={optionsContentRef} className="space-y-4 mt-4" forceMount={undefined}>
                 <div className="grid gap-2">
                   <Label className="text-foreground font-medium">Details</Label>
                   <Textarea 
