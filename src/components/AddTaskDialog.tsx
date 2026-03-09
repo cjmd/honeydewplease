@@ -171,7 +171,7 @@ export function AddTaskDialog({
         <div className="px-4 pb-2 overflow-y-auto flex-1 min-h-0">
           <div className="grid gap-4">
             <div className="grid gap-2">
-              <Input value={title} onChange={e => setTitle(e.target.value)} placeholder="New reminder" onKeyDown={e => {
+              <Input ref={titleInputRef} value={title} onChange={e => setTitle(e.target.value)} placeholder="New reminder" onFocus={handleTitleFocus} onKeyDown={e => {
               if (e.key === "Enter") {
                 e.preventDefault();
               }
