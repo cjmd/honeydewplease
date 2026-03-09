@@ -49,8 +49,12 @@ export function AddTaskDialog({
   const [members, setMembers] = useState<WorkspaceMember[]>([]);
   const [showMemberSelect, setShowMemberSelect] = useState(false);
   const [isOptionsOpen, setIsOptionsOpen] = useState(false);
+  const [activeSnap, setActiveSnap] = useState<string | number | null>("355px");
   const optionsContentRef = useRef<HTMLDivElement>(null);
   const titleInputRef = useRef<HTMLInputElement>(null);
+
+  const snapPoints = isOptionsOpen ? ["355px", 1] : ["355px"];
+
 
   // Scroll input into view when virtual keyboard appears on mobile
   const handleTitleFocus = useCallback(() => {
