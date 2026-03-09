@@ -165,7 +165,7 @@ export function AddTaskDialog({
   const removeTag = (tagToRemove: string) => {
     setTags(tags.filter(tag => tag !== tagToRemove));
   };
-  return <Drawer open={open} onOpenChange={onOpenChange} snapPoints={snapPoints} activeSnapPoint={activeSnap} setActiveSnapPoint={setActiveSnap}>
+  return <Drawer open={open} onOpenChange={onOpenChange}>
         <DrawerContent className="flex flex-col">
         <DrawerHeader className="text-left shrink-0">
           <DrawerTitle className="sr-only">Add New Task</DrawerTitle>
