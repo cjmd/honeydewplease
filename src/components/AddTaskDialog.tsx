@@ -197,6 +197,12 @@ export function AddTaskDialog({
                   document.activeElement.blur();
                 }
                 setIsOptionsOpen(open);
+                // Scroll expanded content into view on mobile
+                if (open) {
+                  setTimeout(() => {
+                    optionsContentRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                  }, 150);
+                }
               }}
             >
               <CollapsibleTrigger asChild>
