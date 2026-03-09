@@ -201,8 +201,16 @@ export function AddTaskDialog({
                   if (document.activeElement instanceof HTMLElement) {
                     document.activeElement.blur();
                   }
-                  setIsOptionsOpen(!isOptionsOpen);
-                  if (!isOptionsOpen) {
+                  const next = !isOptionsOpen;
+                  setIsOptionsOpen(next);
+                  // Force vaul to recalculate drawer height after content changes
+                  setTimeout(() => {
+                    window.dispatchEvent(new Event('resize'));
+                  }, 50);
+                  setTimeout(() => {
+                    window.dispatchEvent(new Event('resize'));
+                  }, 350);
+                  if (next) {
                     setTimeout(() => {
                       optionsContentRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
                     }, 100);
