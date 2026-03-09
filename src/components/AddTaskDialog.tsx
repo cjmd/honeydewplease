@@ -200,9 +200,13 @@ export function AddTaskDialog({
                   }
                   setIsOptionsOpen(!isOptionsOpen);
                   if (!isOptionsOpen) {
-                    setTimeout(() => {
-                      optionsContentRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                    }, 100);
+                    // Force vaul to re-measure drawer height after content expands
+                    requestAnimationFrame(() => {
+                      window.dispatchEvent(new Event('resize'));
+                      setTimeout(() => {
+                        optionsContentRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                      }, 50);
+                    });
                   }
                 }}
               >
