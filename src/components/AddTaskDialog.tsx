@@ -203,13 +203,6 @@ export function AddTaskDialog({
                   }
                   const next = !isOptionsOpen;
                   setIsOptionsOpen(next);
-                  // Force vaul to recalculate drawer height after content changes
-                  setTimeout(() => {
-                    window.dispatchEvent(new Event('resize'));
-                  }, 50);
-                  setTimeout(() => {
-                    window.dispatchEvent(new Event('resize'));
-                  }, 350);
                   if (next) {
                     setTimeout(() => {
                       optionsContentRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -223,9 +216,8 @@ export function AddTaskDialog({
               
                 <div 
                   ref={optionsContentRef} 
-                  className={`space-y-4 overflow-hidden transition-all duration-300 ease-in-out ${
-                    isOptionsOpen ? 'max-h-[600px] opacity-100 mt-4' : 'max-h-0 opacity-0'
-                  }`}
+                  className="space-y-4 mt-4"
+                  style={{ display: isOptionsOpen ? 'block' : 'none' }}
                 >
                   <div className="grid gap-2">
                     <Label className="text-foreground font-medium">Details</Label>

@@ -1,44 +1,25 @@
 
 
-## Problem
+## Update PWA Details
 
-The `vaul` drawer (v0.9.x) captures the content height on mount and positions itself using `transform: translate3d()`. When "More options" expands via a CSS `max-height` transition, vaul doesn't re-measure — the drawer stays at its initial height and the expanded content is clipped below the viewport. The `resize` event dispatch workaround doesn't work reliably on mobile Safari/Chrome.
+### Changes
 
-## Solution
+**1. Copy the uploaded honeydew icon to the project**
+- Copy `user-uploads://image-52.png` to `public/pwa-icon.png` (replaces existing apple-touch-icon)
+- Copy to `public/icon-192.png` and `public/icon-512.png` (replaces existing PWA icons)
 
-**Remove the CSS max-height animation and instead toggle content visibility instantly.** This lets vaul's internal `ResizeObserver` detect the height change on the `DrawerContent` element and reposition the drawer naturally.
+**2. Update theme color to match brand green**
+- Change theme color from `#333333` to the brand's mint green background `#c6f0c6` (derived from the honeydew character's background) in both:
+  - `public/manifest.json` (`theme_color` and `background_color`)
+  - `index.html` (`theme-color` meta tag)
 
-### Changes in `src/components/AddTaskDialog.tsx`
+**3. Fix remaining "love or squirrel" reference**
+- In `index.html` line 15, update `apple-mobile-web-app-title` from `"love or squirrel"` to `"honeydew, please"`
 
-1. **Replace the `max-h` transition with a simple conditional render** — but wrap it so the DOM element stays mounted (avoiding the key-remount flicker). Use `display: none` / `display: block` instead of `max-height: 0` since `display` changes trigger layout reflow that vaul's ResizeObserver reliably detects:
-
-```tsx
-// Replace the max-h transition div with:
-<div 
-  ref={optionsContentRef}
-  className="space-y-4 mt-4"
-  style={{ display: isOptionsOpen ? 'block' : 'none' }}
->
-  {/* ...all the option fields unchanged... */}
-</div>
-```
-
-2. **Simplify the "More options" onClick handler** — remove the `resize` dispatch hacks since they're no longer needed. Keep the `blur()` and `scrollIntoView`:
-
-```tsx
-onClick={() => {
-  if (document.activeElement instanceof HTMLElement) {
-    document.activeElement.blur();
-  }
-  const next = !isOptionsOpen;
-  setIsOptionsOpen(next);
-  if (next) {
-    setTimeout(() => {
-      optionsContentRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }, 100);
-  }
-}}
-```
-
-This is a minimal change — the transition is sacrificed for reliability. The drawer will snap to the new height instantly, which matches the desktop behavior shown in the video.
+### Files Modified
+- `public/pwa-icon.png` -- replaced with uploaded image
+- `public/icon-192.png` -- replaced with uploaded image
+- `public/icon-512.png` -- replaced with uploaded image
+- `public/manifest.json` -- update theme/background colors
+- `index.html` -- update theme-color meta tag and fix app title
 
