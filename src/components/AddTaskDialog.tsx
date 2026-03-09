@@ -49,8 +49,12 @@ export function AddTaskDialog({
   const [members, setMembers] = useState<WorkspaceMember[]>([]);
   const [showMemberSelect, setShowMemberSelect] = useState(false);
   const [isOptionsOpen, setIsOptionsOpen] = useState(false);
+  const [activeSnap, setActiveSnap] = useState<string | number | null>("355px");
   const optionsContentRef = useRef<HTMLDivElement>(null);
   const titleInputRef = useRef<HTMLInputElement>(null);
+
+  const snapPoints = isOptionsOpen ? ["355px", 1] : ["355px"];
+
 
   // Scroll input into view when virtual keyboard appears on mobile
   const handleTitleFocus = useCallback(() => {
@@ -126,6 +130,8 @@ export function AddTaskDialog({
   useEffect(() => {
     if (open) {
       setType(defaultType);
+      setIsOptionsOpen(false);
+      setActiveSnap("355px");
     }
   }, [open, defaultType]);
   const handleSubmit = () => {
@@ -162,8 +168,8 @@ export function AddTaskDialog({
   const removeTag = (tagToRemove: string) => {
     setTags(tags.filter(tag => tag !== tagToRemove));
   };
-  return <Drawer open={open} onOpenChange={onOpenChange}>
-        <DrawerContent className="flex flex-col h-[85dvh]">
+  return <Drawer open={open} onOpenChange={onOpenChange} snapPoints={snapPoints} activeSnapPoint={activeSnap} setActiveSnapPoint={setActiveSnap}>
+        <DrawerContent className="flex flex-col">
         <DrawerHeader className="text-left shrink-0">
           <DrawerTitle className="sr-only">Add New Task</DrawerTitle>
           <DrawerDescription className="sr-only">Create a new task with title, details, and options</DrawerDescription>
@@ -198,11 +204,17 @@ export function AddTaskDialog({
                   if (document.activeElement instanceof HTMLElement) {
                     document.activeElement.blur();
                   }
-                  setIsOptionsOpen(!isOptionsOpen);
-                  if (!isOptionsOpen) {
+                  const opening = !isOptionsOpen;
+                  setIsOptionsOpen(opening);
+                  if (opening) {
+                    // Snap to full height when expanding options
+                    setActiveSnap(1);
                     setTimeout(() => {
                       optionsContentRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                    }, 100);
+                    }, 150);
+                  } else {
+                    // Snap back to compact height
+                    setActiveSnap("355px");
                   }
                 }}
               >
