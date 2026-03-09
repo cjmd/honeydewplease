@@ -203,18 +203,9 @@ export function AddTaskDialog({
                   }
                   setIsOptionsOpen(!isOptionsOpen);
                   if (!isOptionsOpen) {
-                    // After React renders the expanded content, nudge vaul's transform
-                    requestAnimationFrame(() => {
-                      const drawerEl = document.querySelector('[vaul-drawer]') as HTMLElement;
-                      if (drawerEl) {
-                        // Temporarily set transform to 0 to let it recalculate at full content height
-                        drawerEl.style.transition = 'transform 0.3s cubic-bezier(0.32, 0.72, 0, 1)';
-                        drawerEl.style.transform = 'translate3d(0, 0, 0)';
-                      }
-                      setTimeout(() => {
-                        optionsContentRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                      }, 150);
-                    });
+                    setTimeout(() => {
+                      optionsContentRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    }, 100);
                   }
                 }}
               >
@@ -222,8 +213,12 @@ export function AddTaskDialog({
                 {isOptionsOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
               </Button>
               
-              {isOptionsOpen && (
-                <div ref={optionsContentRef} className="space-y-4 mt-4">
+                <div 
+                  ref={optionsContentRef} 
+                  className={`space-y-4 overflow-hidden transition-all duration-300 ease-in-out ${
+                    isOptionsOpen ? 'max-h-[600px] opacity-100 mt-4' : 'max-h-0 opacity-0'
+                  }`}
+                >
                   <div className="grid gap-2">
                     <Label className="text-foreground font-medium">Details</Label>
                     <Textarea 
@@ -371,7 +366,7 @@ export function AddTaskDialog({
                     </Popover>
                   </div>
                 </div>
-              )}
+
             </div>
 
           </div>
