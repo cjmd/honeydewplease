@@ -195,18 +195,25 @@ export function AddTaskDialog({
                 variant="ghost" 
                 className="w-full justify-between text-foreground font-medium p-0 h-auto hover:bg-transparent"
                 onClick={() => {
+                  const wasKeyboardOpen = document.activeElement instanceof HTMLElement && 
+                    (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA');
+                  
                   if (!isOptionsOpen && document.activeElement instanceof HTMLElement) {
                     document.activeElement.blur();
                   }
                   setIsOptionsOpen(!isOptionsOpen);
                   if (!isOptionsOpen) {
-                    // Force vaul to re-measure drawer height after content expands
-                    requestAnimationFrame(() => {
+                    // Wait for keyboard dismiss animation (~350ms) before forcing re-measure
+                    const delay = wasKeyboardOpen ? 400 : 50;
+                    setTimeout(() => {
                       window.dispatchEvent(new Event('resize'));
+                      // Fire multiple resize events to catch late layout shifts
+                      setTimeout(() => window.dispatchEvent(new Event('resize')), 100);
                       setTimeout(() => {
+                        window.dispatchEvent(new Event('resize'));
                         optionsContentRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                      }, 50);
-                    });
+                      }, 200);
+                    }, delay);
                   }
                 }}
               >
