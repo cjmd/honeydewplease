@@ -387,7 +387,19 @@ export function NotesView({ onOpenSettingsMenu, workspaceId, userId }: NotesView
                   onChange={(e) => handleUpdateNote(note.id, { content: e.target.value })}
                   placeholder="Write something..."
                   disabled={showArchived}
-                  className="border-0 bg-transparent px-0 resize-none focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none min-h-[60px]"
+                  ref={(el) => {
+                    if (el) {
+                      el.style.height = "auto";
+                      el.style.height = `${el.scrollHeight}px`;
+                    }
+                  }}
+                  onInput={(e) => {
+                    const el = e.currentTarget;
+                    el.style.height = "auto";
+                    el.style.height = `${el.scrollHeight}px`;
+                  }}
+                  style={{ fontSize: "16px" }}
+                  className="border-0 bg-transparent px-0 resize-none focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none min-h-[60px] overflow-hidden"
                 />
                 {!showArchived ? (
                   <TaskImageUploader
