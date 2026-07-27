@@ -411,12 +411,19 @@ export function NotesView({ onOpenSettingsMenu, workspaceId, userId }: NotesView
                 ) : note.images.length > 0 ? (
                   <div className="flex flex-wrap gap-2">
                     {note.images.map((url) => (
-                      <img
+                      <button
                         key={url}
-                        src={url}
-                        alt="Note attachment"
-                        className="h-20 w-20 rounded-md border border-border object-cover"
-                      />
+                        type="button"
+                        onClick={() => setLightboxUrl(url)}
+                        className="h-20 w-20 rounded-md border border-border overflow-hidden"
+                        aria-label="View image"
+                      >
+                        <img
+                          src={url}
+                          alt="Note attachment"
+                          className="h-full w-full object-cover"
+                        />
+                      </button>
                     ))}
                   </div>
                 ) : null}
