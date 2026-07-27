@@ -60,6 +60,7 @@ export function NotesView({ onOpenSettingsMenu, workspaceId, userId }: NotesView
   const [showArchived, setShowArchived] = useState(false);
   const [draggedId, setDraggedId] = useState<string | null>(null);
   const [dragOverId, setDragOverId] = useState<string | null>(null);
+  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
 
   // Load notes
   useEffect(() => {
