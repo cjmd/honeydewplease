@@ -8,6 +8,7 @@ type TaskImageUploaderProps = {
   images: string[];
   onChange: (images: string[]) => void;
   bucket?: string;
+  onImageClick?: (url: string) => void;
 };
 
 const MAX_SIZE_MB = 5;
