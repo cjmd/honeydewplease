@@ -8,11 +8,12 @@ type TaskImageUploaderProps = {
   images: string[];
   onChange: (images: string[]) => void;
   bucket?: string;
+  onImageClick?: (url: string) => void;
 };
 
 const MAX_SIZE_MB = 5;
 
-export function TaskImageUploader({ images, onChange, bucket = "task-images" }: TaskImageUploaderProps) {
+export function TaskImageUploader({ images, onChange, bucket = "task-images", onImageClick }: TaskImageUploaderProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
 
@@ -83,7 +84,14 @@ export function TaskImageUploader({ images, onChange, bucket = "task-images" }: 
       <div className="flex flex-wrap gap-2">
         {images.map((url) => (
           <div key={url} className="relative h-20 w-20 overflow-hidden rounded-md border border-border">
-            <img src={url} alt="Task attachment" className="h-full w-full object-cover" />
+            <button
+              type="button"
+              onClick={() => onImageClick?.(url)}
+              className="block h-full w-full"
+              aria-label="View image"
+            >
+              <img src={url} alt="Task attachment" className="h-full w-full object-cover" />
+            </button>
             <button
               type="button"
               onClick={() => removeImage(url)}

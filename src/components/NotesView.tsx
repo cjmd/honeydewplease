@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { ViewType } from "../App";
-import { StickyNote, Settings, Plus, Trash2, GripVertical, Archive, ArchiveRestore } from "lucide-react";
+import { StickyNote, Settings, Plus, Trash2, GripVertical, Archive, ArchiveRestore, X } from "lucide-react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
@@ -60,6 +60,7 @@ export function NotesView({ onOpenSettingsMenu, workspaceId, userId }: NotesView
   const [showArchived, setShowArchived] = useState(false);
   const [draggedId, setDraggedId] = useState<string | null>(null);
   const [dragOverId, setDragOverId] = useState<string | null>(null);
+  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
 
   // Load notes
   useEffect(() => {
@@ -405,16 +406,24 @@ export function NotesView({ onOpenSettingsMenu, workspaceId, userId }: NotesView
                   <TaskImageUploader
                     images={note.images}
                     onChange={(images) => handleUpdateNote(note.id, { images })}
+                    onImageClick={(url) => setLightboxUrl(url)}
                   />
                 ) : note.images.length > 0 ? (
                   <div className="flex flex-wrap gap-2">
                     {note.images.map((url) => (
-                      <img
+                      <button
                         key={url}
-                        src={url}
-                        alt="Note attachment"
-                        className="h-20 w-20 rounded-md border border-border object-cover"
-                      />
+                        type="button"
+                        onClick={() => setLightboxUrl(url)}
+                        className="h-20 w-20 rounded-md border border-border overflow-hidden"
+                        aria-label="View image"
+                      >
+                        <img
+                          src={url}
+                          alt="Note attachment"
+                          className="h-full w-full object-cover"
+                        />
+                      </button>
                     ))}
                   </div>
                 ) : null}
@@ -433,6 +442,29 @@ export function NotesView({ onOpenSettingsMenu, workspaceId, userId }: NotesView
           )}
         </div>
       </div>
+
+      {/* Lightbox */}
+      {lightboxUrl && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+          onClick={() => setLightboxUrl(null)}
+        >
+          <button
+            type="button"
+            onClick={() => setLightboxUrl(null)}
+            className="absolute top-4 right-4 rounded-full bg-background/20 p-2 text-white hover:bg-background/40"
+            aria-label="Close image"
+          >
+            <X size={24} />
+          </button>
+          <img
+            src={lightboxUrl}
+            alt="Note attachment preview"
+            className="max-h-[90dvh] max-w-full rounded-md object-contain"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
     </div>
   );
 }
