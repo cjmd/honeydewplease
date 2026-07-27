@@ -406,6 +406,7 @@ export function NotesView({ onOpenSettingsMenu, workspaceId, userId }: NotesView
                   <TaskImageUploader
                     images={note.images}
                     onChange={(images) => handleUpdateNote(note.id, { images })}
+                    onImageClick={(url) => setLightboxUrl(url)}
                   />
                 ) : note.images.length > 0 ? (
                   <div className="flex flex-wrap gap-2">
