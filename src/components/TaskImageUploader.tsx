@@ -13,7 +13,7 @@ type TaskImageUploaderProps = {
 
 const MAX_SIZE_MB = 5;
 
-export function TaskImageUploader({ images, onChange, bucket = "task-images" }: TaskImageUploaderProps) {
+export function TaskImageUploader({ images, onChange, bucket = "task-images", onImageClick }: TaskImageUploaderProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
 
