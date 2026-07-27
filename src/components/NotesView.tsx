@@ -442,6 +442,29 @@ export function NotesView({ onOpenSettingsMenu, workspaceId, userId }: NotesView
           )}
         </div>
       </div>
+
+      {/* Lightbox */}
+      {lightboxUrl && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+          onClick={() => setLightboxUrl(null)}
+        >
+          <button
+            type="button"
+            onClick={() => setLightboxUrl(null)}
+            className="absolute top-4 right-4 rounded-full bg-background/20 p-2 text-white hover:bg-background/40"
+            aria-label="Close image"
+          >
+            <X size={24} />
+          </button>
+          <img
+            src={lightboxUrl}
+            alt="Note attachment preview"
+            className="max-h-[90dvh] max-w-full rounded-md object-contain"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
     </div>
   );
 }
