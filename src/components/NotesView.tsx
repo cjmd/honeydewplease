@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { ViewType } from "../App";
-import { StickyNote, Settings, Plus, Trash2, GripVertical, Archive, ArchiveRestore } from "lucide-react";
+import { StickyNote, Settings, Plus, Trash2, GripVertical, Archive, ArchiveRestore, X } from "lucide-react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
