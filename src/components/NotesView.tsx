@@ -1,9 +1,11 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { ViewType } from "../App";
-import { StickyNote, Settings, Plus, Trash2, GripVertical, Archive, ArchiveRestore, X } from "lucide-react";
+import { StickyNote, Settings, Plus, Trash2, GripVertical, Archive, ArchiveRestore, X, Image as ImageIcon } from "lucide-react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
+import { Label } from "./ui/label";
+import { BottomSheet, BottomSheetHeader, BottomSheetFooter } from "./ui/bottom-sheet";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { TaskImageUploader } from "./TaskImageUploader";
@@ -61,6 +63,13 @@ export function NotesView({ onOpenSettingsMenu, workspaceId, userId }: NotesView
   const [draggedId, setDraggedId] = useState<string | null>(null);
   const [dragOverId, setDragOverId] = useState<string | null>(null);
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
+
+  // Editor sheet state
+  const [editorOpen, setEditorOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null); // null = creating new
+  const [draftTitle, setDraftTitle] = useState("");
+  const [draftContent, setDraftContent] = useState("");
+  const [draftImages, setDraftImages] = useState<string[]>([]);
 
   // Load notes
   useEffect(() => {
@@ -141,66 +150,89 @@ export function NotesView({ onOpenSettingsMenu, workspaceId, userId }: NotesView
     localStorage.setItem(LOCAL_KEY, JSON.stringify(next));
   };
 
-  const handleAddNote = async () => {
-    const newNote: Note = {
-      id: crypto.randomUUID(),
-      title: "",
-      content: "",
-      order: -1,
-      images: [],
-      archived: false,
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
-    };
-
-    // Shift existing active notes down so new note appears at top
-    const active = notes.filter((n) => !n.archived);
-    const archived = notes.filter((n) => n.archived);
-    const reordered = [newNote, ...active].map((n, i) => ({ ...n, order: i }));
-    persist([...reordered, ...archived]);
-
-    if (!userId || !workspaceId) return;
-
-    const { error } = await supabase.from("notes").insert({
-      id: newNote.id,
-      user_id: userId,
-      workspace_id: workspaceId,
-      title: newNote.title,
-      content: newNote.content,
-      order: 0,
-    });
-    if (error) {
-      console.error("Create note failed:", error);
-      toast.error("Failed to create note");
-    }
-
-    // Persist new ordering for shifted notes
-    await Promise.all(
-      reordered
-        .filter((n) => n.id !== newNote.id)
-        .map((n) => supabase.from("notes").update({ order: n.order }).eq("id", n.id))
-    );
+  const openCreate = () => {
+    setEditingId(null);
+    setDraftTitle("");
+    setDraftContent("");
+    setDraftImages([]);
+    setEditorOpen(true);
   };
 
-  const handleUpdateNote = async (id: string, updates: Partial<Note>) => {
-    const next = notes.map((n) =>
-      n.id === id ? { ...n, ...updates, updatedAt: Date.now() } : n
-    );
-    persist(next);
+  const openEdit = (note: Note) => {
+    if (note.archived) return;
+    setEditingId(note.id);
+    setDraftTitle(note.title);
+    setDraftContent(note.content);
+    setDraftImages(note.images);
+    setEditorOpen(true);
+  };
 
-    if (!userId || !workspaceId) return;
+  const handleSaveDraft = async () => {
+    const title = draftTitle.trim();
+    const content = draftContent.trim();
 
-    const dbUpdates: any = {};
-    if (updates.title !== undefined) dbUpdates.title = updates.title;
-    if (updates.content !== undefined) dbUpdates.content = updates.content;
-    if (updates.images !== undefined) dbUpdates.images = updates.images;
-    if (updates.archived !== undefined) {
-      dbUpdates.archived = updates.archived;
-      dbUpdates.archived_at = updates.archived ? new Date().toISOString() : null;
+    if (editingId === null) {
+      // Creating new
+      if (!title && !content && draftImages.length === 0) {
+        setEditorOpen(false);
+        return;
+      }
+      const newNote: Note = {
+        id: crypto.randomUUID(),
+        title,
+        content,
+        order: -1,
+        images: draftImages,
+        archived: false,
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+      };
+      const active = notes.filter((n) => !n.archived);
+      const archived = notes.filter((n) => n.archived);
+      const reordered = [newNote, ...active].map((n, i) => ({ ...n, order: i }));
+      persist([...reordered, ...archived]);
+      setEditorOpen(false);
+
+      if (!userId || !workspaceId) return;
+      const { error } = await supabase.from("notes").insert({
+        id: newNote.id,
+        user_id: userId,
+        workspace_id: workspaceId,
+        title: newNote.title,
+        content: newNote.content,
+        images: newNote.images,
+        order: 0,
+      });
+      if (error) {
+        console.error("Create note failed:", error);
+        toast.error("Failed to create note");
+      }
+      await Promise.all(
+        reordered
+          .filter((n) => n.id !== newNote.id)
+          .map((n) => supabase.from("notes").update({ order: n.order }).eq("id", n.id))
+      );
+    } else {
+      // Editing existing
+      const id = editingId;
+      const next = notes.map((n) =>
+        n.id === id
+          ? { ...n, title, content, images: draftImages, updatedAt: Date.now() }
+          : n
+      );
+      persist(next);
+      setEditorOpen(false);
+
+      if (!userId || !workspaceId) return;
+      const { error } = await supabase
+        .from("notes")
+        .update({ title, content, images: draftImages })
+        .eq("id", id);
+      if (error) {
+        console.error("Update note failed:", error);
+        toast.error("Failed to save note");
+      }
     }
-    if (Object.keys(dbUpdates).length === 0) return;
-    const { error } = await supabase.from("notes").update(dbUpdates).eq("id", id);
-    if (error) console.error("Update note failed:", error);
   };
 
   const handleDeleteNote = async (id: string) => {
@@ -219,9 +251,19 @@ export function NotesView({ onOpenSettingsMenu, workspaceId, userId }: NotesView
     }
   };
 
-  const handleArchive = (id: string, archived: boolean) => {
-    handleUpdateNote(id, { archived });
+  const handleArchive = async (id: string, archived: boolean) => {
+    const next = notes.map((n) =>
+      n.id === id ? { ...n, archived, updatedAt: Date.now() } : n
+    );
+    persist(next);
     toast.success(archived ? "Note archived" : "Note restored");
+
+    if (!userId || !workspaceId) return;
+    const { error } = await supabase
+      .from("notes")
+      .update({ archived, archived_at: archived ? new Date().toISOString() : null })
+      .eq("id", id);
+    if (error) console.error("Archive note failed:", error);
   };
 
   // Drag and drop reorder (only for active notes)
@@ -309,7 +351,7 @@ export function NotesView({ onOpenSettingsMenu, workspaceId, userId }: NotesView
         {/* Add note button (only on active tab) */}
         {!showArchived && (
           <Button
-            onClick={handleAddNote}
+            onClick={openCreate}
             variant="outline"
             className="w-full justify-center gap-2"
           >
@@ -323,6 +365,11 @@ export function NotesView({ onOpenSettingsMenu, workspaceId, userId }: NotesView
           {visibleNotes.map((note) => {
             const isDragging = draggedId === note.id;
             const isDragOver = dragOverId === note.id && draggedId !== note.id;
+            const hasTitle = !!note.title.trim();
+            const hasContent = !!note.content.trim();
+            const hasImages = note.images.length > 0;
+            const isEmpty = !hasTitle && !hasContent && !hasImages;
+
             return (
               <div
                 key={note.id}
@@ -331,102 +378,93 @@ export function NotesView({ onOpenSettingsMenu, workspaceId, userId }: NotesView
                 onDragOver={(e) => handleDragOver(e, note.id)}
                 onDrop={(e) => handleDrop(e, note.id)}
                 onDragEnd={handleDragEnd}
+                onClick={() => openEdit(note)}
                 className={`bg-card rounded-[8px] shadow-[0px_1px_4px_0px_rgba(0,0,0,0.08)] p-[12px] flex flex-col gap-[8px] transition-all ${
-                  isDragging ? "opacity-50" : ""
-                } ${isDragOver ? "ring-2 ring-primary" : ""}`}
+                  !showArchived ? "cursor-pointer hover:shadow-[0px_2px_8px_0px_rgba(0,0,0,0.12)]" : ""
+                } ${isDragging ? "opacity-50" : ""} ${isDragOver ? "ring-2 ring-primary" : ""}`}
               >
                 <div className="flex items-start gap-2">
                   {!showArchived && (
                     <div
                       className="cursor-grab active:cursor-grabbing text-muted-foreground pt-1 touch-none"
                       aria-label="Drag to reorder"
+                      onClick={(e) => e.stopPropagation()}
                     >
                       <GripVertical size={16} />
                     </div>
                   )}
-                  <Input
-                    value={note.title}
-                    onChange={(e) => handleUpdateNote(note.id, { title: e.target.value })}
-                    placeholder="Title"
-                    disabled={showArchived}
-                    className="flex-1 border-0 bg-transparent text-[16px] font-medium px-0 focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none h-auto py-0"
-                  />
-                  <button
-                    onClick={() => handleArchive(note.id, !note.archived)}
-                    className="text-muted-foreground hover:text-foreground transition-colors p-1"
-                    aria-label={note.archived ? "Restore note" : "Archive note"}
-                  >
-                    {note.archived ? <ArchiveRestore size={16} /> : <Archive size={16} />}
-                  </button>
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <button
-                        className="text-muted-foreground hover:text-destructive transition-colors p-1"
-                        aria-label="Delete note"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Delete this note?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          This action cannot be undone.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={() => handleDeleteNote(note.id)}>
-                          Delete
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                </div>
-                <Textarea
-                  value={note.content}
-                  onChange={(e) => handleUpdateNote(note.id, { content: e.target.value })}
-                  placeholder="Write something..."
-                  disabled={showArchived}
-                  ref={(el) => {
-                    if (el) {
-                      el.style.height = "auto";
-                      el.style.height = `${el.scrollHeight}px`;
-                    }
-                  }}
-                  onInput={(e) => {
-                    const el = e.currentTarget;
-                    el.style.height = "auto";
-                    el.style.height = `${el.scrollHeight}px`;
-                  }}
-                  style={{ fontSize: "16px" }}
-                  className="border-0 bg-transparent px-0 resize-none focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none min-h-[60px] overflow-hidden"
-                />
-                {!showArchived ? (
-                  <TaskImageUploader
-                    images={note.images}
-                    onChange={(images) => handleUpdateNote(note.id, { images })}
-                    onImageClick={(url) => setLightboxUrl(url)}
-                  />
-                ) : note.images.length > 0 ? (
-                  <div className="flex flex-wrap gap-2">
-                    {note.images.map((url) => (
-                      <button
-                        key={url}
-                        type="button"
-                        onClick={() => setLightboxUrl(url)}
-                        className="h-20 w-20 rounded-md border border-border overflow-hidden"
-                        aria-label="View image"
-                      >
-                        <img
-                          src={url}
-                          alt="Note attachment"
-                          className="h-full w-full object-cover"
-                        />
-                      </button>
-                    ))}
+                  <div className="flex-1 min-w-0 flex flex-col gap-[6px]">
+                    {hasTitle && (
+                      <p className="text-[16px] font-medium text-foreground break-words">
+                        {note.title}
+                      </p>
+                    )}
+                    {hasContent && (
+                      <p className="text-[14px] text-muted-foreground break-words whitespace-pre-line">
+                        {note.content}
+                      </p>
+                    )}
+                    {isEmpty && (
+                      <p className="text-[14px] text-muted-foreground italic">Empty note</p>
+                    )}
+                    {hasImages && (
+                      <div className="flex flex-wrap gap-1 mt-[2px]">
+                        {note.images.slice(0, 4).map((url) => (
+                          <button
+                            key={url}
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setLightboxUrl(url);
+                            }}
+                            className="h-10 w-10 rounded overflow-hidden border border-border"
+                            aria-label="View image"
+                          >
+                            <img src={url} alt="Note attachment" className="h-full w-full object-cover" />
+                          </button>
+                        ))}
+                        {note.images.length > 4 && (
+                          <div className="h-10 w-10 rounded bg-muted flex items-center justify-center text-[11px] text-muted-foreground">
+                            +{note.images.length - 4}
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
-                ) : null}
+                  <div className="flex items-start gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
+                    <button
+                      onClick={() => handleArchive(note.id, !note.archived)}
+                      className="text-muted-foreground hover:text-foreground transition-colors p-1"
+                      aria-label={note.archived ? "Restore note" : "Archive note"}
+                    >
+                      {note.archived ? <ArchiveRestore size={16} /> : <Archive size={16} />}
+                    </button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <button
+                          className="text-muted-foreground hover:text-destructive transition-colors p-1"
+                          aria-label="Delete note"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Delete this note?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            This action cannot be undone.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => handleDeleteNote(note.id)}>
+                            Delete
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
+                </div>
               </div>
             );
           })}
@@ -443,10 +481,62 @@ export function NotesView({ onOpenSettingsMenu, workspaceId, userId }: NotesView
         </div>
       </div>
 
+      {/* Editor bottom sheet */}
+      <BottomSheet open={editorOpen} onOpenChange={setEditorOpen}>
+        <BottomSheetHeader className="text-left shrink-0">
+          <h2 className="sr-only text-lg font-semibold leading-none tracking-tight">
+            {editingId ? "Edit note" : "New note"}
+          </h2>
+        </BottomSheetHeader>
+        <div className="px-4 pb-2 overflow-y-auto flex-1 min-h-0">
+          <div className="grid gap-4">
+            <Input
+              value={draftTitle}
+              onChange={(e) => setDraftTitle(e.target.value)}
+              placeholder="Title"
+              className="text-[20px] text-foreground placeholder:text-muted-foreground placeholder:italic border-0 border-b border-muted-foreground/30 rounded-none shadow-none h-auto focus-visible:ring-0 focus-visible:border-primary px-[8px] py-[4px]"
+            />
+            <div className="grid gap-2">
+              <Label className="text-foreground font-medium">Content</Label>
+              <Textarea
+                value={draftContent}
+                onChange={(e) => setDraftContent(e.target.value)}
+                placeholder="Write something..."
+                style={{ fontSize: "16px" }}
+                className="text-foreground placeholder:text-muted-foreground placeholder:italic border-0 border-b border-muted-foreground/30 rounded-none shadow-none min-h-[120px] focus-visible:ring-0 focus-visible:border-primary px-[8px] py-[4px] resize-none"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label className="text-foreground font-medium flex items-center gap-2">
+                <ImageIcon size={16} /> Images
+              </Label>
+              <TaskImageUploader
+                images={draftImages}
+                onChange={setDraftImages}
+                onImageClick={(url) => setLightboxUrl(url)}
+              />
+            </div>
+          </div>
+        </div>
+        <BottomSheetFooter
+          className="shrink-0 p-3 pt-2 border-t bg-background"
+          style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 12px)" }}
+        >
+          <div className="flex gap-2 justify-end">
+            <Button type="button" variant="outline" onClick={() => setEditorOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleSaveDraft}>
+              {editingId ? "Save" : "Create Note"}
+            </Button>
+          </div>
+        </BottomSheetFooter>
+      </BottomSheet>
+
       {/* Lightbox */}
       {lightboxUrl && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 p-4"
           onClick={() => setLightboxUrl(null)}
         >
           <button
