@@ -1,4 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { DndContext, PointerSensor, KeyboardSensor, closestCenter, pointerWithin, useSensor, useSensors, type DragEndEvent, type CollisionDetection } from "@dnd-kit/core";
+import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, arrayMove } from "@dnd-kit/sortable";
+import { SortableNote } from "./SortableNote";
 import { ViewType } from "../App";
 import { StickyNote, Settings, Plus, Trash2, GripVertical, Archive, ArchiveRestore, X, Image as ImageIcon } from "lucide-react";
 import { Button } from "./ui/button";
@@ -43,6 +46,11 @@ type NotesViewProps = {
 
 const LOCAL_KEY = "notes";
 
+const noteCollision: CollisionDetection = (args) => {
+  const hits = pointerWithin(args);
+  return hits.length ? hits : closestCenter(args);
+};
+
 const mapRow = (row: any): Note => ({
   id: row.id,
   title: row.title,
@@ -60,8 +68,12 @@ export function NotesView({ onOpenSettingsMenu, workspaceId, userId }: NotesView
   const [notes, setNotes] = useState<Note[]>([]);
   const [loading, setLoading] = useState(false);
   const [showArchived, setShowArchived] = useState(false);
-  const [draggedId, setDraggedId] = useState<string | null>(null);
-  const [dragOverId, setDragOverId] = useState<string | null>(null);
+  const [savingOrder, setSavingOrder] = useState(false);
+  const pendingOrder = useRef(new Map<string, number>());
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
 
   // Editor sheet state
@@ -128,8 +140,10 @@ export function NotesView({ onOpenSettingsMenu, workspaceId, userId }: NotesView
               prev.map((note) => {
                 if (note.id !== n.id) return note;
                 const dbUpdated = new Date(n.updated_at).getTime();
-                if (note.updatedAt > dbUpdated) return note;
-                return mapRow(n);
+                const order = pendingOrder.current.get(note.id);
+                if (note.updatedAt > dbUpdated) return order === undefined ? note : { ...note, order };
+                const mapped = mapRow(n);
+                return order === undefined ? mapped : { ...mapped, order };
               })
             );
           } else if (payload.eventType === "DELETE") {
@@ -266,47 +280,36 @@ export function NotesView({ onOpenSettingsMenu, workspaceId, userId }: NotesView
     if (error) console.error("Archive note failed:", error);
   };
 
-  // Drag and drop reorder (only for active notes)
-  const handleDragStart = (e: React.DragEvent, id: string) => {
-    setDraggedId(id);
-    e.dataTransfer.effectAllowed = "move";
-  };
-
-  const handleDragOver = (e: React.DragEvent, id: string) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = "move";
-    if (id !== dragOverId) setDragOverId(id);
-  };
-
-  const handleDragEnd = () => {
-    setDraggedId(null);
-    setDragOverId(null);
-  };
-
-  const handleDrop = async (e: React.DragEvent, targetId: string) => {
-    e.preventDefault();
-    const sourceId = draggedId;
-    setDraggedId(null);
-    setDragOverId(null);
-    if (!sourceId || sourceId === targetId) return;
-
-    const active = notes.filter((n) => !n.archived);
+  // Use the displayed order, not the backing array's insertion order.
+  const handleDrop = async ({ active: dragged, over }: DragEndEvent) => {
+    if (!over || dragged.id === over.id || savingOrder || showArchived) return;
+    const active = notes.filter((n) => !n.archived).sort((a, b) => a.order - b.order);
     const archived = notes.filter((n) => n.archived);
-    const sourceIdx = active.findIndex((n) => n.id === sourceId);
-    const targetIdx = active.findIndex((n) => n.id === targetId);
+    const sourceIdx = active.findIndex((n) => n.id === dragged.id);
+    const targetIdx = active.findIndex((n) => n.id === over.id);
     if (sourceIdx === -1 || targetIdx === -1) return;
-
-    const reorderedActive = [...active];
-    const [moved] = reorderedActive.splice(sourceIdx, 1);
-    reorderedActive.splice(targetIdx, 0, moved);
-
+    const reorderedActive = arrayMove(active, sourceIdx, targetIdx);
     const withOrder = reorderedActive.map((n, i) => ({ ...n, order: i }));
     persist([...withOrder, ...archived]);
 
     if (!userId || !workspaceId) return;
-    await Promise.all(
-      withOrder.map((n) => supabase.from("notes").update({ order: n.order }).eq("id", n.id))
-    );
+    setSavingOrder(true);
+    pendingOrder.current = new Map(withOrder.map((n) => [n.id, n.order]));
+    try {
+      const results = await Promise.all(withOrder.map((n) =>
+        supabase.from("notes").update({ order: n.order }).eq("workspace_id", workspaceId).eq("id", n.id).select("id")
+      ));
+      if (results.some(({ error, data }) => error || !data?.length)) {
+        toast.error("Couldn't save note order. Please try again.");
+        const { data } = await supabase.from("notes").select("*").eq("workspace_id", workspaceId).order("order");
+        if (data) persist(data.map(mapRow));
+      }
+    } catch {
+      toast.error("Couldn't save note order. Please try again.");
+    } finally {
+      pendingOrder.current.clear();
+      setSavingOrder(false);
+    }
   };
 
   const activeNotes = notes.filter((n) => !n.archived).sort((a, b) => a.order - b.order);
@@ -361,38 +364,25 @@ export function NotesView({ onOpenSettingsMenu, workspaceId, userId }: NotesView
         )}
 
         {/* Notes list */}
+        <DndContext sensors={sensors} collisionDetection={noteCollision} onDragEnd={handleDrop}>
+        <SortableContext items={visibleNotes.map((note) => note.id)} strategy={verticalListSortingStrategy}>
         <div className="flex flex-col gap-[12px] w-full">
           {visibleNotes.map((note) => {
-            const isDragging = draggedId === note.id;
-            const isDragOver = dragOverId === note.id && draggedId !== note.id;
             const hasTitle = !!note.title.trim();
             const hasContent = !!note.content.trim();
             const hasImages = note.images.length > 0;
             const isEmpty = !hasTitle && !hasContent && !hasImages;
 
             return (
-              <div
+              <SortableNote
                 key={note.id}
-                draggable={!showArchived}
-                onDragStart={(e) => handleDragStart(e, note.id)}
-                onDragOver={(e) => handleDragOver(e, note.id)}
-                onDrop={(e) => handleDrop(e, note.id)}
-                onDragEnd={handleDragEnd}
+                id={note.id}
+                disabled={showArchived || savingOrder}
                 onClick={() => openEdit(note)}
-                className={`bg-card rounded-[8px] shadow-[0px_1px_4px_0px_rgba(0,0,0,0.08)] p-[12px] flex flex-col gap-[8px] transition-all ${
-                  !showArchived ? "cursor-pointer hover:shadow-[0px_2px_8px_0px_rgba(0,0,0,0.12)]" : ""
-                } ${isDragging ? "opacity-50" : ""} ${isDragOver ? "ring-2 ring-primary" : ""}`}
               >
+                {(handle) => (
                 <div className="flex items-start gap-2">
-                  {!showArchived && (
-                    <div
-                      className="cursor-grab active:cursor-grabbing text-muted-foreground pt-1 touch-none"
-                      aria-label="Drag to reorder"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <GripVertical size={16} />
-                    </div>
-                  )}
+                  {handle}
                   <div className="flex-1 min-w-0 flex flex-col gap-[6px]">
                     {hasTitle && (
                       <p className="text-[16px] font-medium text-foreground break-words">
@@ -465,7 +455,8 @@ export function NotesView({ onOpenSettingsMenu, workspaceId, userId }: NotesView
                     </AlertDialog>
                   </div>
                 </div>
-              </div>
+                )}
+              </SortableNote>
             );
           })}
 
@@ -479,6 +470,8 @@ export function NotesView({ onOpenSettingsMenu, workspaceId, userId }: NotesView
             </div>
           )}
         </div>
+        </SortableContext>
+        </DndContext>
       </div>
 
       {/* Editor bottom sheet */}
