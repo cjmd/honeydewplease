@@ -40,6 +40,14 @@ All colors MUST be HSL.
     --ring: 142 71% 45%;
 
     --radius: 0.5rem;
+    --todo: 204 85% 42%;
+    --shopping: 142 60% 32%;
+    --note: 258 80% 67%;
+    --archive: 32 88% 40%;
+    --attention: 12 81% 47%;
+    --scrim: 210 20% 5%;
+    --shadow-item: 0 1px 3px hsl(210 20% 18% / 0.04);
+    --shadow-nav: 0 8px 28px hsl(210 20% 18% / 0.1);
 
     --sidebar-background: 210 20% 97%;
     --sidebar-foreground: 210 15% 30%;
@@ -79,7 +87,7 @@ All colors MUST be HSL.
     --secondary-foreground: 210 15% 90%;
 
     --muted: 210 12% 18%;
-    --muted-foreground: 210 12% 55%;
+    --muted-foreground: 210 12% 70%;
 
     /* Mint accent in dark */
     --accent: 142 40% 25%;
@@ -91,6 +99,15 @@ All colors MUST be HSL.
     --border: 210 12% 22%;
     --input: 210 12% 22%;
     --ring: 142 65% 50%;
+    --primary: 0 0% 35%;
+    --primary-foreground: 0 0% 98%;
+    --todo: 204 90% 68%;
+    --shopping: 142 60% 65%;
+    --note: 258 90% 78%;
+    --archive: 32 90% 65%;
+    --attention: 12 90% 68%;
+    --shadow-item: 0 1px 3px hsl(0 0% 0% / 0.12);
+    --shadow-nav: 0 8px 28px hsl(0 0% 0% / 0.25);
 
     --sidebar-background: 210 20% 8%;
     --sidebar-foreground: 210 15% 90%;
@@ -120,4 +137,32 @@ All colors MUST be HSL.
   body {
     @apply bg-background text-foreground;
   }
+}
+
+.app-shell { min-height: 100dvh; letter-spacing: 0; }
+.app-shell > div > div:first-child { max-width: 1040px; margin-inline: auto; padding: 32px 24px calc(var(--app-bottom-safe) + 80px); }
+.app-shell .home-content { gap: 24px; }
+.app-shell button:not([role="checkbox"]), .app-shell [role="combobox"] { min-height: 48px; }
+.app-shell button[aria-label]:not([role="checkbox"]), .app-shell button[title] { min-width: 48px; }
+.app-shell .app-navigation button:hover { color: inherit; }
+.app-shell input, .app-shell textarea { font-size: 16px; }
+.app-shell .task-card, .app-shell [data-note-id] { box-shadow: var(--shadow-item); border: 1px solid hsl(var(--border) / 0.65); }
+.task-card { transition: background-color 200ms, opacity 200ms, box-shadow 200ms; }
+.task-card:hover { background: hsl(var(--accent) / 0.22); }
+.app-navigation { position: fixed; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); left: 50%; transform: translateX(-50%); width: min(calc(100% - 32px), 520px); height: 64px; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); padding: 5px; background: hsl(var(--card) / 0.95); border: 1px solid hsl(var(--border)); border-radius: 16px; backdrop-filter: blur(16px); box-shadow: var(--shadow-nav); z-index: 40; }
+.nav-pill { position: absolute; top: 5px; bottom: 5px; left: 5px; width: calc((100% - 10px) / 5); border-radius: 11px; background: hsl(var(--accent) / 0.7); transition: transform 240ms ease-out; }
+.app-add { position: fixed; bottom: calc(100px + env(safe-area-inset-bottom, 0px)); left: 50%; transform: translateX(-50%); width: 56px; height: 56px; border-radius: 50%; box-shadow: var(--shadow-nav); z-index: 40; }
+.relief-sticker { animation: relief-arrive 450ms ease-out both; }
+@keyframes relief-arrive { from { opacity: 0; transform: translateY(8px) rotate(-5deg); } to { opacity: 1; transform: translateY(0) rotate(0); } }
+@media (min-width: 768px) {
+  .app-shell > div > div:first-child { padding-top: 40px; }
+  .app-shell .home-lists { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px; align-items: start; }
+}
+@media (max-width: 767px) {
+  .app-shell > div > div:first-child { padding: 24px 16px calc(var(--app-bottom-safe) + 80px); }
+  .app-shell .household-overview h1 { font-size: 28px; }
+  .app-shell .household-overview .relief-sticker { width: 64px; height: 64px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 }

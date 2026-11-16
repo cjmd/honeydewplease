@@ -9,6 +9,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Button } from "./ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { Separator } from "./ui/separator";
+import { HouseholdOverview } from "./HouseholdOverview";
 
 type HomeViewProps = {
   tasks: Task[];
@@ -18,6 +19,8 @@ type HomeViewProps = {
   onViewChange: (view: ViewType) => void;
   onOpenSettingsMenu: () => void;
   workspaceMembers?: Record<string, string>;
+  workspaceName?: string | null;
+  overviewReady?: boolean;
 };
 
 function DraggableTaskItem({
@@ -65,14 +68,14 @@ function DraggableTaskItem({
       style={{ opacity: isDragging ? 0.5 : 1 }}
       className={`w-full ${isDraggable ? 'cursor-move' : ''}`}
     >
-      <TaskItem task={task} onClick={onClick} onToggle={onToggle} showTypeIcon={showTypeIcon} assigneeName={assigneeName} />
+      <TaskItem task={task} onClick={onClick} onToggle={onToggle} showTypeIcon={showTypeIcon} assigneeName={assigneeName} compact />
     </div>
   );
 }
 
 type SortBy = "order" | "createdAt" | "dueDate";
 
-export function HomeView({ tasks, onTaskClick, onTaskToggle, onReorder, onViewChange, onOpenSettingsMenu, workspaceMembers = {} }: HomeViewProps) {
+export function HomeView({ tasks, onTaskClick, onTaskToggle, onReorder, onViewChange, onOpenSettingsMenu, workspaceMembers = {}, workspaceName = null, overviewReady = false }: HomeViewProps) {
   const [selectedTag, setSelectedTag] = useState<string>("all");
   const [filterMode, setFilterMode] = useState<"all" | "priority">("all");
   const [sortBy, setSortBy] = useState<SortBy>("order");
@@ -173,25 +176,14 @@ export function HomeView({ tasks, onTaskClick, onTaskToggle, onReorder, onViewCh
   return (
     <DndProvider backend={HTML5Backend}>
       <div className="w-full h-screen overflow-y-auto">
-        <div className="box-border content-stretch flex flex-col gap-[16px] items-start pb-[180px] pt-[60px] px-[16px] relative min-h-full pr-[16px] pl-[16px]">
+        <div className="home-content box-border flex flex-col gap-6 items-start relative min-h-full">
           {/* Header */}
-          <div className="content-stretch flex items-start justify-between leading-[normal] not-italic relative shrink-0 text-[24px] text-nowrap w-full whitespace-pre">
-            <div className="content-stretch flex gap-[10px] items-center relative shrink-0 w-[234px]">
-              <Flag className="relative shrink-0 text-[#f24822]" size={24} />
-              <p className="relative shrink-0 text-foreground">{filterMode === "all" ? "Home" : "Priorities"}</p>
-            </div>
-            <button 
-              onClick={onOpenSettingsMenu}
-              className="relative shrink-0 text-foreground"
-            >
-              <Settings size={24} />
-            </button>
-          </div>
+          <HouseholdOverview tasks={tasks} members={workspaceMembers} workspaceName={workspaceName} ready={overviewReady} onSettings={onOpenSettingsMenu} />
 
           {/* Filters */}
           <div className="flex gap-[8px] w-full items-center flex-wrap">
             <div className="flex gap-[4px] bg-muted rounded-lg p-[2px]">
-              <button
+              <Button variant="ghost"
                 onClick={() => setFilterMode("all")}
                 className={`px-[16px] py-[6px] rounded-md transition-colors ${
                   filterMode === "all"
@@ -200,8 +192,8 @@ export function HomeView({ tasks, onTaskClick, onTaskToggle, onReorder, onViewCh
                 }`}
               >
                 All
-              </button>
-              <button
+              </Button>
+              <Button variant="ghost"
                 onClick={() => setFilterMode("priority")}
                 className={`px-[16px] py-[6px] rounded-md transition-colors ${
                   filterMode === "priority"
@@ -210,7 +202,7 @@ export function HomeView({ tasks, onTaskClick, onTaskToggle, onReorder, onViewCh
                 }`}
               >
                 Priority
-              </button>
+              </Button>
             </div>
             
           <Popover>
@@ -280,7 +272,7 @@ export function HomeView({ tasks, onTaskClick, onTaskToggle, onReorder, onViewCh
 
           <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="icon" className="ml-auto shrink-0">
+                <Button variant="outline" size="icon" className="ml-auto shrink-0" aria-label="Sort tasks" title="Sort tasks">
                   <ArrowUpDown className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
@@ -305,15 +297,17 @@ export function HomeView({ tasks, onTaskClick, onTaskToggle, onReorder, onViewCh
           )}
 
           {/* To-dos section */}
+          <div className="home-lists flex flex-col gap-6 w-full">
           {todoTasks.length > 0 && (
             <div className="content-stretch flex flex-col gap-[8px] items-start relative shrink-0 w-full">
-              <button
+              <Button variant="ghost"
                 onClick={() => onViewChange("todos")}
-                className="content-stretch flex gap-[4px] items-center leading-[normal] not-italic relative shrink-0 text-[20px] text-nowrap whitespace-pre"
+                className="flex gap-2 items-center justify-start px-0 text-lg font-semibold w-full hover:bg-transparent"
               >
-                <ListChecks className="relative shrink-0 text-[#3dadff]" size={20} />
+                <ListChecks className="relative shrink-0 text-todo" size={20} />
                 <p className="relative shrink-0 text-foreground">To-dos</p>
-              </button>
+                <span className="ml-auto text-sm font-normal text-muted-foreground">{todoTasks.length}</span>
+              </Button>
               {todoTasks.map((task, index) => (
                 <DraggableTaskItem
                   key={task.id}
@@ -333,13 +327,14 @@ export function HomeView({ tasks, onTaskClick, onTaskToggle, onReorder, onViewCh
           {/* Shopping section */}
           {shoppingTasks.length > 0 && (
             <div className="content-stretch flex flex-col gap-[8px] items-start relative shrink-0 w-full">
-              <button
+              <Button variant="ghost"
                 onClick={() => onViewChange("shopping")}
-                className="content-stretch flex gap-[4px] items-center leading-[normal] not-italic relative shrink-0 text-[20px] text-nowrap whitespace-pre"
+                className="flex gap-2 items-center justify-start px-0 text-lg font-semibold w-full hover:bg-transparent"
               >
-                <ShoppingCart className="relative shrink-0 text-[#66d575]" size={20} />
+                <ShoppingCart className="relative shrink-0 text-shopping" size={20} />
                 <p className="relative shrink-0 text-foreground">Shopping</p>
-              </button>
+                <span className="ml-auto text-sm font-normal text-muted-foreground">{shoppingTasks.length}</span>
+              </Button>
               {shoppingTasks.map((task, index) => (
                 <DraggableTaskItem
                   key={task.id}
@@ -357,10 +352,11 @@ export function HomeView({ tasks, onTaskClick, onTaskToggle, onReorder, onViewCh
           )}
 
           {/* Empty state */}
+          </div>
           {todoTasks.length === 0 && shoppingTasks.length === 0 && (
             <div className="flex items-center justify-center w-full pt-20">
               <p className="text-muted-foreground">
-                No tasks yet. Tap + to add one!
+                {selectedTag !== "all" || selectedAssignee !== "all" ? "Nothing matches these filters." : filterMode === "priority" ? "No priority or overdue items. A little breathing room." : "Nothing on your list yet."}
               </p>
             </div>
           )}

@@ -322,12 +322,12 @@ export function NotesView({ onOpenSettingsMenu, workspaceId, userId }: NotesView
         {/* Header */}
         <div className="flex items-start justify-between w-full text-[24px]">
           <div className="flex gap-[10px] items-center">
-            <StickyNote className="text-[#a78bfa]" size={24} />
+            <StickyNote className="text-note" size={24} />
             <p className="text-foreground">Notes</p>
           </div>
-          <button onClick={onOpenSettingsMenu} className="text-foreground">
+          <Button variant="ghost" size="icon" onClick={onOpenSettingsMenu} className="text-muted-foreground" aria-label="Open settings" title="Settings">
             <Settings size={24} />
-          </button>
+          </Button>
         </div>
 
         {/* Tabs: Active / Archived */}
@@ -381,11 +381,11 @@ export function NotesView({ onOpenSettingsMenu, workspaceId, userId }: NotesView
                 onClick={() => openEdit(note)}
               >
                 {(handle) => (
-                <div className="flex items-start gap-2">
+                <div className="relative flex items-start gap-2">
                   {handle}
                   <div className="flex-1 min-w-0 flex flex-col gap-[6px]">
                     {hasTitle && (
-                      <p className="text-[16px] font-medium text-foreground break-words">
+                      <p className="text-[16px] font-medium text-foreground break-words pr-24 min-h-12 flex items-center">
                         {note.title}
                       </p>
                     )}
@@ -407,7 +407,7 @@ export function NotesView({ onOpenSettingsMenu, workspaceId, userId }: NotesView
                               e.stopPropagation();
                               setLightboxUrl(url);
                             }}
-                            className="h-10 w-10 rounded overflow-hidden border border-border"
+                            className="h-12 w-12 rounded overflow-hidden border border-border"
                             aria-label="View image"
                           >
                             <img src={url} alt="Note attachment" className="h-full w-full object-cover" />
@@ -421,22 +421,22 @@ export function NotesView({ onOpenSettingsMenu, workspaceId, userId }: NotesView
                       </div>
                     )}
                   </div>
-                  <div className="flex items-start gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
-                    <button
+                  <div className="absolute right-0 top-0 flex items-start gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
+                     <Button variant="ghost" size="icon"
                       onClick={() => handleArchive(note.id, !note.archived)}
                       className="text-muted-foreground hover:text-foreground transition-colors p-1"
                       aria-label={note.archived ? "Restore note" : "Archive note"}
                     >
                       {note.archived ? <ArchiveRestore size={16} /> : <Archive size={16} />}
-                    </button>
+                     </Button>
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
-                        <button
+                         <Button variant="ghost" size="icon"
                           className="text-muted-foreground hover:text-destructive transition-colors p-1"
                           aria-label="Delete note"
                         >
                           <Trash2 size={16} />
-                        </button>
+                         </Button>
                       </AlertDialogTrigger>
                       <AlertDialogContent>
                         <AlertDialogHeader>
@@ -465,7 +465,7 @@ export function NotesView({ onOpenSettingsMenu, workspaceId, userId }: NotesView
               <p className="text-muted-foreground">
                 {showArchived
                   ? "No archived notes."
-                  : 'No notes yet. Tap "New note" to add one!'}
+                  : "A little space for your ideas."}
               </p>
             </div>
           )}
@@ -495,8 +495,7 @@ export function NotesView({ onOpenSettingsMenu, workspaceId, userId }: NotesView
                 value={draftContent}
                 onChange={(e) => setDraftContent(e.target.value)}
                 placeholder="Write something..."
-                style={{ fontSize: "16px" }}
-                className="text-foreground placeholder:text-muted-foreground placeholder:italic border-0 border-b border-muted-foreground/30 rounded-none shadow-none min-h-[120px] focus-visible:ring-0 focus-visible:border-primary px-[8px] py-[4px] resize-none"
+                className="text-base text-foreground placeholder:text-muted-foreground placeholder:italic border-0 border-b border-muted-foreground/30 rounded-none shadow-none min-h-[120px] focus-visible:ring-0 focus-visible:border-primary px-[8px] py-[4px] resize-none"
               />
             </div>
             <div className="grid gap-2">
@@ -529,17 +528,17 @@ export function NotesView({ onOpenSettingsMenu, workspaceId, userId }: NotesView
       {/* Lightbox */}
       {lightboxUrl && (
         <div
-          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 p-4"
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-scrim/90 p-4"
           onClick={() => setLightboxUrl(null)}
         >
-          <button
+          <Button variant="secondary" size="icon"
             type="button"
             onClick={() => setLightboxUrl(null)}
-            className="absolute top-4 right-4 rounded-full bg-background/20 p-2 text-white hover:bg-background/40"
+            className="absolute top-4 right-4 rounded-full"
             aria-label="Close image"
           >
             <X size={24} />
-          </button>
+          </Button>
           <img
             src={lightboxUrl}
             alt="Note attachment preview"

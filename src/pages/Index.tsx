@@ -17,6 +17,8 @@ import { PWAInstaller } from "../components/PWAInstaller";
 import { InstallPrompt } from "../components/InstallPrompt";
 import { NotificationPermissionPrompt } from "../components/NotificationPermissionPrompt";
 import { useBadgeUpdater } from "../hooks/useBadgeUpdater";
+import { AppNavigation } from "../components/AppNavigation";
+import { Button } from "../components/ui/button";
 
 const Index = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -30,6 +32,21 @@ const Index = () => {
   const [workspaceId, setWorkspaceId] = useState<string | null>(null);
   const [defaultTaskType, setDefaultTaskType] = useState<"todo" | "shopping">("todo");
   const [workspaceMembers, setWorkspaceMembers] = useState<Record<string, string>>({});
+  const [workspaceLabel, setWorkspaceLabel] = useState<{ id: string; name: string } | null>(null);
+  const [overviewReady, setOverviewReady] = useState(false);
+
+  // Read the current workspace label for display only; switching stays in Settings.
+  useEffect(() => {
+    let cancelled = false;
+    if (!user || !workspaceId) {
+      setWorkspaceLabel(null);
+      return;
+    }
+    supabase.from("workspaces").select("name").eq("id", workspaceId).maybeSingle().then(({ data }) => {
+      if (!cancelled && data) setWorkspaceLabel({ id: workspaceId, name: data.name });
+    });
+    return () => { cancelled = true; };
+  }, [user, workspaceId]);
 
   // Update app badge with priority/overdue count
   useBadgeUpdater(tasks);
@@ -43,11 +60,13 @@ const Index = () => {
       
       // Load workspace and tasks when user signs in
       if (session?.user) {
+        setOverviewReady(false);
         setTimeout(() => {
           loadWorkspaceId(session.user.id);
           loadTasks(session.user.id);
         }, 0);
       } else {
+        setOverviewReady(true);
         // Load from localStorage if not logged in
         const localTasks = localStorage.getItem("tasks");
         if (localTasks) {
@@ -400,6 +419,7 @@ const Index = () => {
 
       console.log("Loaded tasks from server:", loadedTasks.length);
       saveTasks(loadedTasks); // Cache to localStorage
+      setOverviewReady(true);
     } catch (error) {
       console.error("Error loading tasks:", error);
       toast.error("Failed to load tasks");
@@ -882,9 +902,9 @@ const Index = () => {
       <InstallPrompt />
       <NotificationPermissionPrompt tasks={tasks} />
 
-      <div className="size-full bg-background relative">
+      <div className="app-shell size-full bg-background relative">
         {/* Main content */}
-        {currentView === "home" && <HomeView tasks={tasks} onTaskClick={setSelectedTask} onTaskToggle={handleToggleTask} onReorder={handleReorderTasks} onViewChange={setCurrentView} onOpenSettingsMenu={() => setIsSettingsMenuOpen(true)} workspaceMembers={workspaceMembers} />}
+        {currentView === "home" && <HomeView tasks={tasks} onTaskClick={setSelectedTask} onTaskToggle={handleToggleTask} onReorder={handleReorderTasks} onViewChange={setCurrentView} onOpenSettingsMenu={() => setIsSettingsMenuOpen(true)} workspaceMembers={workspaceMembers} workspaceName={workspaceLabel?.id === workspaceId ? workspaceLabel.name : null} overviewReady={overviewReady} />}
 
         {currentView === "todos" && <TodosView tasks={todoTasks} onTaskClick={setSelectedTask} onTaskToggle={handleToggleTask} onReorder={handleReorderTasks} onViewChange={setCurrentView} onOpenSettingsMenu={() => setIsSettingsMenuOpen(true)} workspaceMembers={workspaceMembers} />}
 
@@ -896,38 +916,13 @@ const Index = () => {
 
         {/* Floating Add Button (hidden on notes view — notes use inline add) */}
         {currentView !== "notes" && (
-          <button onClick={handleAddTask} className="fixed bottom-[96px] left-1/2 -translate-x-1/2 w-[56px] h-[56px] rounded-full bg-primary flex items-center justify-center text-primary-foreground shadow-lg hover:opacity-90 transition-opacity z-50">
-            <Plus size={28} />
-          </button>
+          <Button onClick={handleAddTask} size="icon" aria-label={currentView === "shopping" ? "Add shopping item" : "Add task"} title={currentView === "shopping" ? "Add shopping item" : "Add task"} className="app-add">
+            <Plus className="h-7 w-7" />
+          </Button>
         )}
 
         {/* Floating Bottom Navigation */}
-        <div className="fixed bottom-4 left-4 right-4 bg-card/95 backdrop-blur-md border border-border h-[60px] rounded-2xl flex items-center justify-around px-[16px] shadow-lg z-40">
-          <button onClick={() => setCurrentView("home")} className={`flex flex-col items-center gap-[4px] transition-all px-4 py-2 rounded-xl ${currentView === "home" ? "text-foreground bg-primary/10" : "text-muted-foreground"}`}>
-            <Home size={24} />
-            <span className="text-[10px]">Home</span>
-          </button>
-
-          <button onClick={() => setCurrentView("todos")} className={`flex flex-col items-center gap-[4px] transition-all px-4 py-2 rounded-xl ${currentView === "todos" ? "text-[#3dadff] bg-[#3dadff]/10" : "text-muted-foreground"}`}>
-            <ListChecks size={24} />
-            <span className="text-[10px]">To-dos</span>
-          </button>
-
-          <button onClick={() => setCurrentView("shopping")} className={`flex flex-col items-center gap-[4px] transition-all px-4 py-2 rounded-xl ${currentView === "shopping" ? "text-[#66d575] bg-[#66d575]/10" : "text-muted-foreground"}`}>
-            <ShoppingCart size={24} />
-            <span className="text-[10px]">Shopping</span>
-          </button>
-
-          <button onClick={() => setCurrentView("notes")} className={`flex flex-col items-center gap-[4px] transition-all px-4 py-2 rounded-xl ${currentView === "notes" ? "text-[#a78bfa] bg-[#a78bfa]/10" : "text-muted-foreground"}`}>
-            <StickyNote size={24} />
-            <span className="text-[10px]">Notes</span>
-          </button>
-
-          <button onClick={() => setCurrentView("archive")} className={`flex flex-col items-center gap-[4px] transition-all px-4 py-2 rounded-xl ${currentView === "archive" ? "text-[#ff9500] bg-[#ff9500]/10" : "text-muted-foreground"}`}>
-            <Archive size={24} />
-            <span className="text-[10px]">Archive</span>
-          </button>
-        </div>
+        <AppNavigation view={currentView} onChange={setCurrentView} />
 
         {/* Dialogs */}
         <AddTaskDialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen} onCreateTask={handleCreateTask} defaultType={defaultTaskType} tasks={tasks} workspaceId={workspaceId} />

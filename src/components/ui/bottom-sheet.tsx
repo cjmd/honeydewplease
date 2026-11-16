@@ -89,7 +89,7 @@ export function BottomSheet({ open, onOpenChange, children, className }: BottomS
       {/* Backdrop */}
       <div
         className={cn(
-          "absolute inset-0 bg-black/80 transition-opacity duration-300",
+          "absolute inset-0 bg-scrim/80 transition-opacity duration-300",
           animating ? "opacity-100" : "opacity-0"
         )}
         onClick={dismiss}
@@ -98,7 +98,7 @@ export function BottomSheet({ open, onOpenChange, children, className }: BottomS
       <div
         ref={sheetRef}
         className={cn(
-          "absolute inset-x-0 bottom-0 flex max-h-[90dvh] flex-col rounded-t-[10px] border bg-background transition-transform duration-300 ease-out",
+          "absolute inset-x-0 bottom-0 mx-auto w-full md:max-w-xl flex max-h-[90dvh] flex-col rounded-t-[10px] border bg-background transition-transform duration-300 ease-out",
           animating ? "translate-y-0" : "translate-y-full",
           className
         )}

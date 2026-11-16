@@ -68,15 +68,16 @@ export function ArchiveView({ tasks, onTaskClick, onTaskToggle, onViewChange, on
         {/* Header */}
         <div className="content-stretch flex items-start justify-between leading-[normal] not-italic relative shrink-0 text-[24px] text-nowrap w-full whitespace-pre">
             <div className="content-stretch flex gap-[10px] items-center relative shrink-0 w-[234px]">
-              <Archive className="relative shrink-0 text-[#ff9500]" size={24} />
+              <Archive className="relative shrink-0 text-archive" size={24} />
               <p className="relative shrink-0 text-foreground">Archive</p>
             </div>
-            <button 
+            <Button variant="ghost" size="icon"
               onClick={onOpenSettingsMenu}
-              className="relative shrink-0 text-foreground"
+              aria-label="Open settings" title="Settings"
+              className="relative shrink-0 text-muted-foreground"
             >
               <Settings size={24} />
-            </button>
+            </Button>
         </div>
 
         {/* Filters */}
@@ -159,7 +160,7 @@ export function ArchiveView({ tasks, onTaskClick, onTaskToggle, onViewChange, on
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="icon" className="ml-auto shrink-0">
+              <Button variant="outline" size="icon" className="ml-auto shrink-0" aria-label="Sort items" title="Sort items">
                 <ArrowUpDown className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
@@ -194,9 +195,7 @@ export function ArchiveView({ tasks, onTaskClick, onTaskToggle, onViewChange, on
           {sortedTasks.length === 0 && (
             <div className="flex items-center justify-center w-full pt-20">
               <p className="text-muted-foreground">
-                {filterBy === "all"
-                  ? "No completed tasks yet"
-                  : `No completed ${filterBy} yet`}
+                {selectedTag !== "all" || selectedAssignee !== "all" ? "Nothing matches these filters." : "Finished items will have a home here."}
               </p>
             </div>
           )}

@@ -10,9 +10,10 @@ type TaskItemProps = {
   onToggle: (completed: boolean) => void;
   showTypeIcon?: boolean;
   assigneeName?: string | null;
+  compact?: boolean;
 };
 
-export function TaskItem({ task, onClick, onToggle, showTypeIcon = false, assigneeName }: TaskItemProps) {
+export function TaskItem({ task, onClick, onToggle, showTypeIcon = false, assigneeName, compact = false }: TaskItemProps) {
   const [isChecking, setIsChecking] = useState(false);
   const displayCompleted = task.completed || isChecking;
 
@@ -30,19 +31,19 @@ export function TaskItem({ task, onClick, onToggle, showTypeIcon = false, assign
 
   return (
     <div
-      className="box-border content-stretch flex gap-[8px] items-start bg-card p-[12px] px-[16px] py-[12px] relative shrink-0 w-full rounded-[8px] shadow-[0px_1px_4px_0px_rgba(0,0,0,0.08)] cursor-pointer hover:shadow-[0px_2px_8px_0px_rgba(0,0,0,0.12)] transition-shadow"
+      className={`task-card box-border flex gap-2 items-start bg-card px-4 py-4 relative shrink-0 w-full rounded-lg cursor-pointer ${displayCompleted ? "bg-muted/50" : ""}`}
       onClick={onClick}
     >
       <div className={`flex items-start w-full ${task.isPriority && !task.completed ? 'gap-[4px]' : 'gap-[12px]'}`}>
         <div className="flex items-center gap-[4px] shrink-0 pt-[2px]">
           {task.isPriority && !task.completed && (
-            <Flag className="text-[#f24822]" size={16} />
+            <Flag className="text-attention" size={16} />
           )}
           {showTypeIcon && (
             task.type === "todo" ? (
-              <ListChecks className="text-[#3dadff]" size={16} />
+              <ListChecks className="text-todo" size={16} />
             ) : (
-              <ShoppingCart className="text-[#66d575]" size={16} />
+              <ShoppingCart className="text-shopping" size={16} />
             )
           )}
         </div>
@@ -57,7 +58,7 @@ export function TaskItem({ task, onClick, onToggle, showTypeIcon = false, assign
             </p>
           </div>
           {task.details && (
-            <p className="text-[14px] text-muted-foreground break-words whitespace-pre-line">
+            <p className={`text-[14px] text-muted-foreground break-words whitespace-pre-line ${compact ? "line-clamp-2" : ""}`}>
               {task.details}
             </p>
           )}
@@ -97,7 +98,7 @@ export function TaskItem({ task, onClick, onToggle, showTypeIcon = false, assign
             handleToggle(!task.completed);
           }}
         >
-          <Checkbox checked={displayCompleted} />
+          <Checkbox checked={displayCompleted} aria-label={`${task.completed ? "Restore" : "Complete"} ${task.title}`} />
         </div>
       </div>
     </div>

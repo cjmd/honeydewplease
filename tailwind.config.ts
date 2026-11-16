@@ -17,6 +17,12 @@ export default {
         sans: ['DM Sans', 'ui-sans-serif', 'system-ui', 'sans-serif'],
       },
       colors: {
+        todo: "hsl(var(--todo))",
+        shopping: "hsl(var(--shopping))",
+        note: "hsl(var(--note))",
+        archive: "hsl(var(--archive))",
+        attention: "hsl(var(--attention))",
+        scrim: "hsl(var(--scrim))",
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",

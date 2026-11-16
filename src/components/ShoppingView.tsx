@@ -140,21 +140,22 @@ export function ShoppingView({ tasks, onTaskClick, onTaskToggle, onReorder, onVi
           {/* Header */}
           <div className="content-stretch flex items-start justify-between leading-[normal] not-italic relative shrink-0 text-[24px] text-nowrap w-full whitespace-pre">
             <div className="content-stretch flex gap-[10px] items-center relative shrink-0 w-[234px]">
-              <ShoppingCart className="relative shrink-0 text-[#66d575]" size={24} />
+              <ShoppingCart className="relative shrink-0 text-shopping" size={24} />
               <p className="relative shrink-0 text-foreground">Shopping</p>
             </div>
-            <button 
+            <Button variant="ghost" size="icon"
               onClick={onOpenSettingsMenu}
-              className="relative shrink-0 text-foreground"
+              aria-label="Open settings" title="Settings"
+              className="relative shrink-0 text-muted-foreground"
             >
               <Settings size={24} />
-            </button>
+            </Button>
           </div>
 
           {/* Filters */}
           <div className="flex gap-[8px] w-full items-center flex-wrap">
             <div className="flex gap-[4px] bg-muted rounded-lg p-[2px]">
-              <button
+              <Button variant="ghost"
                 onClick={() => setFilterBy("active")}
                 className={`px-[16px] py-[6px] rounded-md transition-colors ${
                   filterBy === "active"
@@ -163,8 +164,8 @@ export function ShoppingView({ tasks, onTaskClick, onTaskToggle, onReorder, onVi
                 }`}
               >
                 All
-              </button>
-              <button
+              </Button>
+              <Button variant="ghost"
                 onClick={() => setFilterBy("priority")}
                 className={`px-[16px] py-[6px] rounded-md transition-colors ${
                   filterBy === "priority"
@@ -173,7 +174,7 @@ export function ShoppingView({ tasks, onTaskClick, onTaskToggle, onReorder, onVi
                 }`}
               >
                 Priority
-              </button>
+              </Button>
             </div>
             
           <Popover>
@@ -243,7 +244,7 @@ export function ShoppingView({ tasks, onTaskClick, onTaskToggle, onReorder, onVi
 
           <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="icon" className="ml-auto shrink-0">
+                <Button variant="outline" size="icon" className="ml-auto shrink-0" aria-label="Sort items" title="Sort items">
                   <ArrowUpDown className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
@@ -285,9 +286,7 @@ export function ShoppingView({ tasks, onTaskClick, onTaskToggle, onReorder, onVi
           {sortedTasks.length === 0 && (
             <div className="flex items-center justify-center w-full pt-20">
               <p className="text-muted-foreground">
-                {filterBy === "all"
-                  ? "No shopping items yet. Tap + to add one!"
-                  : `No ${filterBy} shopping items`}
+                {selectedTag !== "all" || selectedAssignee !== "all" ? "Nothing matches these filters." : filterBy === "priority" ? "No priority shopping items." : "Nothing left on this shopping list."}
               </p>
             </div>
           )}

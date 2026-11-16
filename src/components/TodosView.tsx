@@ -147,21 +147,22 @@ export function TodosView({ tasks, onTaskClick, onTaskToggle, onReorder, onViewC
           {/* Header */}
           <div className="content-stretch flex items-start justify-between leading-[normal] not-italic relative shrink-0 text-[24px] text-nowrap w-full whitespace-pre">
             <div className="content-stretch flex gap-[10px] items-center relative shrink-0 w-[234px]">
-              <ListChecks className="relative shrink-0 text-[#3dadff]" size={24} />
+              <ListChecks className="relative shrink-0 text-todo" size={24} />
               <p className="relative shrink-0 text-foreground">To-dos</p>
             </div>
-            <button 
+            <Button variant="ghost" size="icon"
               onClick={onOpenSettingsMenu}
-              className="relative shrink-0 text-foreground"
+              aria-label="Open settings" title="Settings"
+              className="relative shrink-0 text-muted-foreground"
             >
               <Settings size={24} />
-            </button>
+            </Button>
           </div>
 
           {/* Filters and sorting */}
           <div className="flex gap-[8px] w-full items-center flex-wrap">
             <div className="flex gap-[4px] bg-muted rounded-lg p-[2px]">
-              <button
+              <Button variant="ghost"
                 onClick={() => setFilterBy("active")}
                 className={`px-[16px] py-[6px] rounded-md transition-colors ${
                   filterBy === "active"
@@ -170,8 +171,8 @@ export function TodosView({ tasks, onTaskClick, onTaskToggle, onReorder, onViewC
                 }`}
               >
                 All
-              </button>
-              <button
+              </Button>
+              <Button variant="ghost"
                 onClick={() => setFilterBy("priority")}
                 className={`px-[16px] py-[6px] rounded-md transition-colors ${
                   filterBy === "priority"
@@ -180,7 +181,7 @@ export function TodosView({ tasks, onTaskClick, onTaskToggle, onReorder, onViewC
                 }`}
               >
                 Priority
-              </button>
+              </Button>
             </div>
             
           <Popover>
@@ -250,7 +251,7 @@ export function TodosView({ tasks, onTaskClick, onTaskToggle, onReorder, onViewC
 
           <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="icon" className="ml-auto shrink-0">
+                <Button variant="outline" size="icon" className="ml-auto shrink-0" aria-label="Sort items" title="Sort items">
                   <ArrowUpDown className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
@@ -295,9 +296,7 @@ export function TodosView({ tasks, onTaskClick, onTaskToggle, onReorder, onViewC
           {sortedTasks.length === 0 && (
             <div className="flex items-center justify-center w-full pt-20">
               <p className="text-muted-foreground">
-                {filterBy === "all"
-                  ? "No to-dos yet. Tap + to add one!"
-                  : `No ${filterBy} to-dos`}
+                {selectedTag !== "all" || selectedAssignee !== "all" ? "Nothing matches these filters." : filterBy === "priority" ? "No priority to-dos. A little breathing room." : "No to-dos here. Room for what comes next."}
               </p>
             </div>
           )}
